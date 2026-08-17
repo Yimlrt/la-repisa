@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { formatCOP } from '../lib/format.js'
+import { rotateImageFile, urlToFile } from '../lib/imageEdit.js'
 
 const emptyForm = { id: null, name: '', price: '', stock: '', category: '', description: '', image_urls: [] }
 
@@ -123,6 +124,34 @@ export default function AdminDashboard() {
     setFiles((f) => f.filter((_, i) => i !== index))
   }
 
+  async function rotatePendingFile(index) {
+    try {
+      const rotated = await rotateImageFile(files[index], 90)
+      setFiles((f) => f.map((file, i) => (i === index ? rotated : file)))
+    } catch (err) {
+      setError('No se pudo rotar la foto: ' + err.message)
+    }
+  }
+
+  async function rotateExistingImage(index) {
+    const url = form.image_urls[index]
+    setError('')
+    try {
+      const file = await urlToFile(url, `foto-${index}.jpg`)
+      const rotated = await rotateImageFile(file, 90)
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
+      const { error: uploadError } = await supabase.storage.from('product-images').upload(path, rotated)
+      if (uploadError) throw uploadError
+      const { data: publicUrl } = supabase.storage.from('product-images').getPublicUrl(path)
+      setForm((f) => ({
+        ...f,
+        image_urls: f.image_urls.map((u, i) => (i === index ? publicUrl.publicUrl : u)),
+      }))
+    } catch (err) {
+      setError('No se pudo rotar la foto: ' + err.message)
+    }
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut()
     navigate('/admin/login')
@@ -135,7 +164,10 @@ export default function AdminDashboard() {
     <div className="container" style={{ padding: '32px 0 80px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24 }}>Administrar productos</h1>
-        <button onClick={handleLogout} className="btn btn-outline">Cerrar sesión</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <Link to="/" className="close-link">✕ Ver tienda</Link>
+          <button onClick={handleLogout} className="btn btn-outline">Cerrar sesión</button>
+        </div>
       </div>
 
       <form onSubmit={handleSave} style={styles.form}>
@@ -192,6 +224,7 @@ export default function AdminDashboard() {
                 <div key={url} style={styles.imageThumb}>
                   <img src={url} alt={`Foto ${i + 1}`} style={styles.thumbImg} />
                   {i === 0 && <span style={styles.mainBadge}>Principal</span>}
+                  <button type="button" onClick={() => rotateExistingImage(i)} style={styles.rotateBtn} title="Rotar foto">⟳</button>
                   <button type="button" onClick={() => removeExistingImage(url)} style={styles.removeBtn}>×</button>
                 </div>
               ))}
@@ -204,6 +237,7 @@ export default function AdminDashboard() {
                 <div key={i} style={styles.imageThumb}>
                   <img src={URL.createObjectURL(file)} alt={`Nueva ${i + 1}`} style={styles.thumbImg} />
                   <span style={styles.pendingBadge}>Nueva</span>
+                  <button type="button" onClick={() => rotatePendingFile(i)} style={styles.rotateBtn} title="Rotar foto">⟳</button>
                   <button type="button" onClick={() => removePendingFile(i)} style={styles.removeBtn}>×</button>
                 </div>
               ))}
@@ -327,6 +361,20 @@ const styles = {
     background: 'rgba(26,20,20,0.7)',
     color: '#fff',
     fontSize: 14,
+    lineHeight: 1,
+    cursor: 'pointer',
+  },
+  rotateBtn: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    border: 'none',
+    background: 'rgba(26,20,20,0.7)',
+    color: '#fff',
+    fontSize: 12,
     lineHeight: 1,
     cursor: 'pointer',
   },

@@ -93,3 +93,52 @@ h1, h2, h3 {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* --- Página de detalle de producto: apila en columna en celular --- */
+.pd-wrap {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 56px;
+  padding: 24px 24px 100px;
+}
+@media (max-width: 760px) {
+  .pd-wrap {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 0 16px 60px;
+  }
+}
+
+.pd-navbtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.92);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 760px) {
+  .pd-navbtn {
+    width: 46px;
+    height: 46px;
+    font-size: 26px;
+  }
+}
+
+.close-link {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.close-link:hover { color: var(--ink); }

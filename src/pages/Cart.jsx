@@ -18,7 +18,10 @@ export default function Cart() {
 
   return (
     <div className="container" style={{ padding: '48px 24px 100px', maxWidth: 720 }}>
-      <h1 style={{ fontSize: 24, marginBottom: 32, fontWeight: 500 }}>Carrito</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 500, margin: 0 }}>Carrito</h1>
+        <Link to="/" className="close-link">✕ Cerrar</Link>
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {items.map((item) => {
           const cover = (item.image_urls && item.image_urls[0]) || item.image_url

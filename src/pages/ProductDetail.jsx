@@ -52,7 +52,7 @@ export default function ProductDetail() {
         <Link to="/" style={styles.back}>← Volver</Link>
       </div>
 
-      <div className="container" style={styles.wrap}>
+      <div className="container pd-wrap">
         <div>
           <div style={styles.imageWrap} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             {images.length > 0 ? (
@@ -63,8 +63,8 @@ export default function ProductDetail() {
 
             {images.length > 1 && (
               <>
-                <button onClick={prev} style={{ ...styles.navBtn, left: 14 }} aria-label="Foto anterior">‹</button>
-                <button onClick={next} style={{ ...styles.navBtn, right: 14 }} aria-label="Foto siguiente">›</button>
+                <button onClick={prev} className="pd-navbtn" style={{ left: 14 }} aria-label="Foto anterior">‹</button>
+                <button onClick={next} className="pd-navbtn" style={{ right: 14 }} aria-label="Foto siguiente">›</button>
               </>
             )}
           </div>

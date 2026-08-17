@@ -50,7 +50,10 @@ export default function Checkout() {
 
   return (
     <div className="container" style={{ padding: '48px 24px 100px', maxWidth: 640 }}>
-      <h1 style={{ fontSize: 24, marginBottom: 6, fontWeight: 500 }}>Finalizar pedido</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 500, margin: 0 }}>Finalizar pedido</h1>
+        <Link to="/carrito" className="close-link">✕ Cerrar</Link>
+      </div>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 40 }}>Referencia de pedido {reference}</p>
 
       <div style={styles.summary}>
