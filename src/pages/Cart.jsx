@@ -9,47 +9,47 @@ export default function Cart() {
 
   if (items.length === 0) {
     return (
-      <div className="container" style={{ padding: '60px 0', textAlign: 'center' }}>
-        <p style={{ fontSize: 17, marginBottom: 16 }}>Tu carrito está vacío.</p>
+      <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
+        <p style={{ fontSize: 15, color: 'var(--muted)', marginBottom: 20 }}>Tu carrito está vacío.</p>
         <Link to="/" className="btn btn-primary">Ver productos</Link>
       </div>
     )
   }
 
   return (
-    <div className="container" style={{ padding: '40px 0 80px' }}>
-      <h1 style={{ fontSize: 28, marginBottom: 24 }}>Tu carrito</h1>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {items.map((item) => (
-          <div key={item.id} style={styles.row}>
-            <div style={styles.thumb}>
-              {item.image_url ? (
-                <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : null}
+    <div className="container" style={{ padding: '48px 24px 100px', maxWidth: 720 }}>
+      <h1 style={{ fontSize: 24, marginBottom: 32, fontWeight: 500 }}>Carrito</h1>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {items.map((item) => {
+          const cover = (item.image_urls && item.image_urls[0]) || item.image_url
+          return (
+            <div key={item.id} style={styles.row}>
+              <div style={styles.thumb}>
+                {cover && <img src={cover} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 500, margin: '0 0 4px', fontSize: 14 }}>{item.name}</p>
+                <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>{formatCOP(item.price)}</p>
+              </div>
+              <div style={styles.qtyBox}>
+                <button onClick={() => updateQty(item.id, item.qty - 1)} style={styles.qtyBtn}>−</button>
+                <span style={{ minWidth: 20, textAlign: 'center', fontSize: 13 }}>{item.qty}</span>
+                <button onClick={() => updateQty(item.id, item.qty + 1)} style={styles.qtyBtn}>+</button>
+              </div>
+              <p style={{ fontSize: 14, minWidth: 90, textAlign: 'right', margin: 0 }}>{formatCOP(item.price * item.qty)}</p>
+              <button onClick={() => removeItem(item.id)} style={styles.remove}>Quitar</button>
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontWeight: 600, margin: '0 0 4px' }}>{item.name}</p>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--brick)', margin: 0 }}>
-                {formatCOP(item.price)}
-              </p>
-            </div>
-            <div style={styles.qtyBox}>
-              <button className="btn btn-outline" onClick={() => updateQty(item.id, item.qty - 1)}>−</button>
-              <span style={{ minWidth: 20, textAlign: 'center' }}>{item.qty}</span>
-              <button className="btn btn-outline" onClick={() => updateQty(item.id, item.qty + 1)}>+</button>
-            </div>
-            <button onClick={() => removeItem(item.id)} style={styles.remove}>Quitar</button>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div style={styles.summary}>
-        <span style={{ fontSize: 16 }}>Total</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 600 }}>{formatCOP(total)}</span>
+        <span style={{ fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--muted)' }}>Total</span>
+        <span style={{ fontSize: 20, fontWeight: 500 }}>{formatCOP(total)}</span>
       </div>
 
-      <button className="btn btn-primary" style={{ width: '100%', marginTop: 16 }} onClick={() => navigate('/pagar')}>
-        Ir a pagar
+      <button className="btn btn-primary" style={{ width: '100%', marginTop: 24 }} onClick={() => navigate('/pagar')}>
+        Continuar con el pago
       </button>
     </div>
   )
@@ -59,21 +59,20 @@ const styles = {
   row: {
     display: 'flex',
     alignItems: 'center',
-    gap: 14,
-    background: '#fff',
-    border: '1px solid rgba(26,20,20,0.08)',
-    borderRadius: 12,
-    padding: 12,
+    gap: 16,
+    padding: '18px 0',
+    borderBottom: '1px solid var(--line)',
   },
-  thumb: { width: 60, height: 60, borderRadius: 8, background: '#EFE6D6', overflow: 'hidden', flexShrink: 0 },
-  qtyBox: { display: 'flex', alignItems: 'center', gap: 8 },
-  remove: { background: 'none', border: 'none', color: 'var(--brick)', fontSize: 13, fontWeight: 600 },
+  thumb: { width: 68, height: 84, background: '#F3F1EE', overflow: 'hidden', flexShrink: 0 },
+  qtyBox: { display: 'flex', alignItems: 'center', gap: 10, border: '1px solid var(--line)', padding: '4px 10px' },
+  qtyBtn: { border: 'none', background: 'none', fontSize: 15, color: 'var(--ink)', width: 16 },
+  remove: { background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12, textDecoration: 'underline' },
   summary: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 28,
+    alignItems: 'baseline',
+    marginTop: 24,
     paddingTop: 20,
-    borderTop: '1.5px solid rgba(26,20,20,0.1)',
+    borderTop: '1px solid var(--ink)',
   },
 }

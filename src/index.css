@@ -1,12 +1,11 @@
 :root {
-  --wine: #3B1F2B;
-  --wine-deep: #2A1620;
-  --paper: #F4E9D8;
-  --paper-soft: #FBF6EC;
-  --ink: #1A1414;
-  --marigold: #E8A33D;
-  --sage: #6B8F71;
-  --brick: #C65D4B;
+  --ink: #17140F;
+  --paper: #FFFFFF;
+  --paper-soft: #FAF9F7;
+  --line: rgba(23,20,15,0.12);
+  --line-soft: rgba(23,20,15,0.07);
+  --muted: #8C857A;
+  --accent: #8A6F4E;
 
   --font-display: 'Fraunces', serif;
   --font-body: 'Work Sans', sans-serif;
@@ -19,7 +18,7 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  background: var(--paper-soft);
+  background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -32,41 +31,23 @@ img { max-width: 100%; display: block; }
 .container {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
 }
 
 h1, h2, h3 {
   font-family: var(--font-display);
   margin: 0;
   letter-spacing: -0.01em;
+  font-weight: 500;
 }
 
-/* --- Elemento firma: la "etiqueta colgante" de mercado --- */
-.tag {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--paper);
-  border: 1px solid rgba(26,20,20,0.12);
-  padding: 6px 14px 6px 22px;
-  border-radius: 3px 10px 10px 3px;
+.eyebrow {
+  display: inline-block;
   font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  color: var(--wine);
-}
-.tag::before {
-  content: '';
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--paper-soft);
-  border: 1.5px solid var(--wine);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .btn {
@@ -74,26 +55,30 @@ h1, h2, h3 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 22px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  padding: 13px 22px;
   font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 15px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+  background: transparent;
+  color: var(--ink);
 }
-.btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--wine); color: var(--paper); }
-.btn-primary:hover { box-shadow: 0 6px 18px rgba(59,31,43,0.28); }
-.btn-accent { background: var(--marigold); color: var(--wine-deep); }
-.btn-accent:hover { box-shadow: 0 6px 18px rgba(232,163,61,0.4); }
-.btn-outline { background: transparent; color: var(--wine); border: 1.5px solid var(--wine); }
+.btn:hover { opacity: 0.75; }
+.btn:active { opacity: 0.55; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.btn-accent { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+.btn-outline { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn-outline:hover { border-color: var(--ink); opacity: 1; }
 
 .skeleton {
-  background: linear-gradient(90deg, #eee5d5 25%, #f4ecdf 50%, #eee5d5 75%);
+  background: linear-gradient(90deg, #F1EFEC 25%, #FAF9F7 50%, #F1EFEC 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
-  border-radius: 8px;
 }
 @keyframes shimmer {
   0% { background-position: 200% 0; }
@@ -101,7 +86,7 @@ h1, h2, h3 {
 }
 
 :focus-visible {
-  outline: 2.5px solid var(--sage);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 

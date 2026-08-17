@@ -218,7 +218,7 @@ export default function AdminDashboard() {
           />
         </div>
 
-        {error && <p style={{ color: 'var(--brick)', fontSize: 13 }}>{error}</p>}
+        {error && <p style={{ color: '#B3413B', fontSize: 13 }}>{error}</p>}
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" type="submit" disabled={saving}>
             {saving ? 'Guardando...' : form.id ? 'Guardar cambios' : 'Publicar producto'}
@@ -298,7 +298,7 @@ const styles = {
     position: 'absolute',
     bottom: 4,
     left: 4,
-    background: 'var(--wine)',
+    background: 'var(--ink)',
     color: '#fff',
     fontSize: 9,
     fontWeight: 700,
@@ -309,7 +309,7 @@ const styles = {
     position: 'absolute',
     bottom: 4,
     left: 4,
-    background: 'var(--sage)',
+    background: 'var(--accent)',
     color: '#fff',
     fontSize: 9,
     fontWeight: 700,
@@ -340,5 +340,5 @@ const styles = {
     padding: 10,
   },
   thumb: { width: 50, height: 50, borderRadius: 8, background: '#EFE6D6', overflow: 'hidden', flexShrink: 0 },
-  delete: { background: 'none', border: 'none', color: 'var(--brick)', fontWeight: 600, fontSize: 13 },
+  delete: { background: 'none', border: 'none', color: '#B3413B', fontWeight: 600, fontSize: 13 },
 }

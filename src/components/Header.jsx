@@ -10,14 +10,10 @@ export default function Header() {
   return (
     <header style={styles.header}>
       <div className="container" style={styles.inner}>
-        <Link to="/" style={styles.logo}>
-          <span style={styles.logoMark}>◆</span>
-          {STORE_NAME}
-        </Link>
+        <Link to="/" style={styles.logo}>{STORE_NAME}</Link>
         <nav style={styles.nav}>
           <Link to="/carrito" style={styles.cartLink}>
-            Carrito
-            {count > 0 && <span style={styles.badge}>{count}</span>}
+            Carrito{count > 0 ? ` (${count})` : ''}
           </Link>
         </nav>
       </div>
@@ -30,41 +26,28 @@ const styles = {
     position: 'sticky',
     top: 0,
     zIndex: 20,
-    background: 'var(--paper-soft)',
-    borderBottom: '1px solid rgba(26,20,20,0.1)',
+    background: 'var(--paper)',
+    borderBottom: '1px solid var(--line)',
   },
   inner: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 68,
+    height: 72,
   },
   logo: {
     fontFamily: 'var(--font-display)',
-    fontWeight: 600,
-    fontSize: 22,
-    color: 'var(--wine)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
+    fontWeight: 500,
+    fontSize: 20,
+    letterSpacing: '0.02em',
+    color: 'var(--ink)',
   },
-  logoMark: { color: 'var(--marigold)', fontSize: 14 },
-  nav: { display: 'flex', alignItems: 'center', gap: 20 },
+  nav: { display: 'flex', alignItems: 'center', gap: 24 },
   cartLink: {
-    position: 'relative',
-    fontWeight: 600,
-    fontSize: 14,
-    color: 'var(--wine)',
-  },
-  badge: {
-    position: 'absolute',
-    top: -10,
-    right: -16,
-    background: 'var(--brick)',
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: 700,
-    borderRadius: '999px',
-    padding: '1px 6px',
+    fontSize: 12,
+    fontWeight: 500,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: 'var(--ink)',
   },
 }

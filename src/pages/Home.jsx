@@ -38,19 +38,17 @@ export default function Home() {
     <div>
       <section style={styles.hero}>
         <div className="container">
-          <span className="tag">un poco de todo</span>
-          <h1 style={styles.heroTitle}>Bienvenido a {STORE_NAME}</h1>
-          <p style={styles.heroSub}>
-            Ropa, bolsos, platos y muchas cosas más — hechas o escogidas con cariño para tu casa.
-          </p>
+          <span className="eyebrow">Nueva colección</span>
+          <h1 style={styles.heroTitle}>{STORE_NAME}</h1>
+          <p style={styles.heroSub}>Ropa, bolsos, hogar y más — seleccionado con cuidado.</p>
         </div>
       </section>
 
-      <section className="container" style={{ paddingTop: 28, paddingBottom: 60 }}>
+      <section className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
         <div style={styles.controls}>
           <input
             type="text"
-            placeholder="Buscar producto..."
+            placeholder="Buscar"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             style={styles.search}
@@ -80,7 +78,7 @@ export default function Home() {
         ) : filtered.length === 0 ? (
           <p style={styles.empty}>
             {products.length === 0
-              ? 'Todavía no hay productos publicados. Ve al panel de administración para agregar el primero.'
+              ? 'Todavía no hay productos publicados.'
               : 'No encontramos productos con ese nombre o categoría.'}
           </p>
         ) : (
@@ -97,36 +95,39 @@ export default function Home() {
 
 const styles = {
   hero: {
-    background: 'var(--wine)',
-    color: 'var(--paper)',
-    padding: '56px 0 48px',
+    padding: '72px 0 56px',
+    borderBottom: '1px solid var(--line)',
   },
-  heroTitle: { fontSize: 'clamp(32px, 5vw, 48px)', margin: '14px 0 10px', color: 'var(--paper)' },
-  heroSub: { maxWidth: 480, opacity: 0.85, fontSize: 16, lineHeight: 1.5, margin: 0 },
-  controls: { display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 },
+  heroTitle: { fontSize: 'clamp(38px, 6vw, 56px)', margin: '16px 0 12px', color: 'var(--ink)' },
+  heroSub: { maxWidth: 420, color: 'var(--muted)', fontSize: 15, lineHeight: 1.6, margin: 0 },
+  controls: { display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 36 },
   search: {
-    padding: '12px 16px',
-    borderRadius: 10,
-    border: '1.5px solid rgba(26,20,20,0.15)',
-    fontSize: 15,
+    padding: '13px 0',
+    border: 'none',
+    borderBottom: '1px solid var(--line)',
+    borderRadius: 0,
+    fontSize: 14,
     fontFamily: 'var(--font-body)',
-    maxWidth: 360,
+    maxWidth: 320,
+    background: 'transparent',
   },
-  chips: { display: 'flex', gap: 8, flexWrap: 'wrap' },
+  chips: { display: 'flex', gap: 20, flexWrap: 'wrap', borderBottom: '1px solid var(--line-soft)', paddingBottom: 16 },
   chip: {
-    border: '1.5px solid rgba(26,20,20,0.15)',
-    background: '#fff',
-    borderRadius: 999,
-    padding: '7px 16px',
-    fontSize: 13,
-    fontWeight: 600,
-    color: 'var(--wine)',
+    border: 'none',
+    background: 'none',
+    padding: 0,
+    fontSize: 12,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    fontWeight: 500,
+    color: 'var(--muted)',
   },
-  chipActive: { background: 'var(--wine)', color: 'var(--paper)', borderColor: 'var(--wine)' },
+  chipActive: { color: 'var(--ink)', textDecoration: 'underline', textUnderlineOffset: 4 },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: 18,
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+    columnGap: 24,
+    rowGap: 40,
   },
-  empty: { padding: '40px 0', textAlign: 'center', color: 'var(--wine)', opacity: 0.7 },
+  empty: { padding: '60px 0', textAlign: 'center', color: 'var(--muted)' },
 }

@@ -17,8 +17,8 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <div className="container" style={{ padding: '60px 0', textAlign: 'center' }}>
-        <p style={{ marginBottom: 16 }}>Tu carrito está vacío.</p>
+      <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
+        <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Tu carrito está vacío.</p>
         <Link to="/" className="btn btn-primary">Ver productos</Link>
       </div>
     )
@@ -39,9 +39,7 @@ export default function Checkout() {
       `Hola! Quiero confirmar mi pedido *${reference}*\n\n` +
       `${lines}\n\n` +
       `Total: ${formatCOP(total)}\n\n` +
-      `Nombre: ${name}\n` +
-      `Teléfono: ${phone}\n` +
-      `Dirección de entrega: ${address}\n\n` +
+      `Nombre: ${name}\nTeléfono: ${phone}\nDirección de entrega: ${address}\n\n` +
       `Ya hice la transferencia por Nequi, adjunto el comprobante.`
 
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
@@ -51,125 +49,123 @@ export default function Checkout() {
   }
 
   return (
-    <div className="container" style={{ padding: '40px 0 80px', maxWidth: 520 }}>
-      <h1 style={{ fontSize: 26, marginBottom: 6 }}>Confirmar pedido</h1>
-      <p style={{ opacity: 0.7, marginBottom: 28 }}>
-        Pagas por Nequi y confirmas por WhatsApp. Así de simple.
-      </p>
+    <div className="container" style={{ padding: '48px 24px 100px', maxWidth: 640 }}>
+      <h1 style={{ fontSize: 24, marginBottom: 6, fontWeight: 500 }}>Finalizar pedido</h1>
+      <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 40 }}>Referencia de pedido {reference}</p>
 
       <div style={styles.summary}>
         {items.map((i) => (
           <div key={i.id} style={styles.line}>
-            <span>{i.qty} × {i.name}</span>
-            <span style={{ fontFamily: 'var(--font-mono)' }}>{formatCOP(i.price * i.qty)}</span>
+            <span style={{ fontSize: 13 }}>{i.qty} × {i.name}</span>
+            <span style={{ fontSize: 13 }}>{formatCOP(i.price * i.qty)}</span>
           </div>
         ))}
-        <div style={{ ...styles.line, borderTop: '1.5px solid rgba(26,20,20,0.12)', paddingTop: 10, fontWeight: 700 }}>
-          <span>Total</span>
-          <span style={{ fontFamily: 'var(--font-mono)' }}>{formatCOP(total)}</span>
+        <div style={{ ...styles.line, borderTop: '1px solid var(--ink)', paddingTop: 12, marginTop: 4 }}>
+          <span style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total</span>
+          <span style={{ fontSize: 17, fontWeight: 500 }}>{formatCOP(total)}</span>
         </div>
       </div>
 
       {!configured && (
         <p style={styles.warning}>
-          ⚠️ Falta configurar VITE_NEQUI_NUMBER y VITE_WHATSAPP_NUMBER en el archivo .env para que este paso funcione.
+          Falta configurar VITE_NEQUI_NUMBER y VITE_WHATSAPP_NUMBER en el archivo .env para habilitar este paso.
         </p>
       )}
 
-      <div style={styles.step}>
-        <span className="tag" style={{ marginBottom: 10 }}>paso 1</span>
-        <p style={{ margin: '0 0 10px', fontWeight: 600 }}>Transfiere {formatCOP(total)} a este Nequi:</p>
-        <div style={styles.nequiBox}>
-          <div>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 20, margin: 0 }}>{NEQUI_NUMBER || '—'}</p>
-            {NEQUI_HOLDER && <p style={{ fontSize: 13, opacity: 0.7, margin: '2px 0 0' }}>{NEQUI_HOLDER}</p>}
+      <div style={styles.stepper}>
+        <div style={styles.step}>
+          <div style={styles.stepHead}>
+            <span style={styles.stepNum}>1</span>
+            <p style={styles.stepTitle}>Transferir por Nequi</p>
           </div>
-          <button type="button" className="btn btn-outline" onClick={copyNumber} disabled={!NEQUI_NUMBER}>
-            {copied ? 'Copiado ✓' : 'Copiar'}
-          </button>
+          <div style={styles.stepBody}>
+            <div style={styles.nequiBox}>
+              <div>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 19, margin: 0, letterSpacing: '0.02em' }}>
+                  {NEQUI_NUMBER || '—'}
+                </p>
+                {NEQUI_HOLDER && <p style={{ fontSize: 12, color: 'var(--muted)', margin: '3px 0 0' }}>{NEQUI_HOLDER}</p>}
+              </div>
+              <button type="button" className="btn btn-outline" onClick={copyNumber} disabled={!NEQUI_NUMBER}>
+                {copied ? 'Copiado' : 'Copiar'}
+              </button>
+            </div>
+            <p style={styles.stepNote}>Transfiere exactamente {formatCOP(total)} a este número.</p>
+          </div>
+        </div>
+
+        <div style={styles.step}>
+          <div style={styles.stepHead}>
+            <span style={styles.stepNum}>2</span>
+            <p style={styles.stepTitle}>Datos de entrega</p>
+          </div>
+          <div style={{ ...styles.stepBody, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <input placeholder="Nombre completo" value={name} onChange={(e) => setName(e.target.value)} style={styles.input} />
+            <input placeholder="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} style={styles.input} />
+            <input placeholder="Dirección de entrega" value={address} onChange={(e) => setAddress(e.target.value)} style={styles.input} />
+          </div>
+        </div>
+
+        <div style={styles.step}>
+          <div style={styles.stepHead}>
+            <span style={styles.stepNum}>3</span>
+            <p style={styles.stepTitle}>Confirmar por WhatsApp</p>
+          </div>
+          <div style={styles.stepBody}>
+            <p style={styles.stepNote}>
+              Se abrirá WhatsApp con tu pedido ya escrito. Adjunta ahí la foto del comprobante de la transferencia.
+            </p>
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%', marginTop: 14 }}
+              onClick={handleSendProof}
+              disabled={!configured || !name || !phone || !address}
+            >
+              Enviar comprobante por WhatsApp
+            </button>
+          </div>
         </div>
       </div>
 
-      <div style={styles.step}>
-        <span className="tag" style={{ marginBottom: 10 }}>paso 2</span>
-        <p style={{ margin: '0 0 10px', fontWeight: 600 }}>Cuéntanos a dónde enviamos tu pedido:</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <input placeholder="Tu nombre completo" value={name} onChange={(e) => setName(e.target.value)} style={styles.input} />
-          <input placeholder="Tu número de teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} style={styles.input} />
-          <input placeholder="Dirección de entrega" value={address} onChange={(e) => setAddress(e.target.value)} style={styles.input} />
-        </div>
-      </div>
-
-      <div style={styles.step}>
-        <span className="tag" style={{ marginBottom: 10 }}>paso 3</span>
-        <p style={{ margin: '0 0 6px', fontWeight: 600 }}>Envía el comprobante por WhatsApp</p>
-        <p style={{ fontSize: 13, opacity: 0.75, margin: '0 0 14px' }}>
-          Al tocar el botón se abre WhatsApp con tu pedido ya escrito. Adjunta ahí la foto o captura del comprobante de la transferencia.
-        </p>
-        <button
-          className="btn btn-accent"
-          style={{ width: '100%' }}
-          onClick={handleSendProof}
-          disabled={!configured || !name || !phone || !address}
-        >
-          Enviar comprobante por WhatsApp
-        </button>
-      </div>
-
-      <p style={styles.notice}>
-        📦 El pedido se despacha únicamente después de recibir y confirmar el comprobante de pago por WhatsApp.
+      <p style={styles.footNote}>
+        Tu pedido se despacha únicamente después de confirmar el comprobante de pago por WhatsApp.
       </p>
     </div>
   )
 }
 
 const styles = {
-  summary: {
-    background: '#fff',
-    border: '1px solid rgba(26,20,20,0.08)',
-    borderRadius: 12,
-    padding: 16,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-    marginBottom: 24,
+  summary: { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 },
+  line: { display: 'flex', justifyContent: 'space-between' },
+  warning: {
+    fontSize: 12.5,
+    color: 'var(--muted)',
+    border: '1px solid var(--line)',
+    padding: 12,
+    marginBottom: 20,
   },
-  line: { display: 'flex', justifyContent: 'space-between', fontSize: 14 },
-  step: {
-    background: '#fff',
-    border: '1px solid rgba(26,20,20,0.08)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+  stepper: { display: 'flex', flexDirection: 'column' },
+  step: { borderTop: '1px solid var(--line)', padding: '24px 0' },
+  stepHead: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 },
+  stepNum: {
+    width: 24, height: 24, borderRadius: '50%', border: '1px solid var(--ink)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 12, fontFamily: 'var(--font-mono)', flexShrink: 0,
   },
+  stepTitle: { fontSize: 15, fontWeight: 500, margin: 0 },
+  stepBody: { paddingLeft: 36 },
   nequiBox: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    background: 'var(--paper)',
-    borderRadius: 10,
-    padding: '12px 16px',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    border: '1px solid var(--line)', padding: '14px 18px',
   },
+  stepNote: { fontSize: 13, color: 'var(--muted)', marginTop: 10, lineHeight: 1.6 },
   input: {
-    padding: '11px 14px',
-    borderRadius: 8,
-    border: '1.5px solid rgba(26,20,20,0.15)',
+    padding: '12px 0',
+    border: 'none',
+    borderBottom: '1px solid var(--line)',
     fontFamily: 'var(--font-body)',
     fontSize: 14,
+    background: 'transparent',
   },
-  warning: {
-    background: '#FCEFE2',
-    border: '1px solid var(--marigold)',
-    color: 'var(--wine)',
-    padding: 12,
-    borderRadius: 8,
-    fontSize: 13,
-    marginBottom: 16,
-  },
-  notice: {
-    fontSize: 13,
-    textAlign: 'center',
-    opacity: 0.75,
-    marginTop: 8,
-  },
+  footNote: { fontSize: 12, color: 'var(--muted)', textAlign: 'center', marginTop: 32, lineHeight: 1.6 },
 }

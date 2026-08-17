@@ -16,7 +16,7 @@ export default function AdminLogin() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (error) {
-      setError(`Error real de Supabase: ${error.message} (código: ${error.status || 'sin código'})`)
+      setError('Correo o contraseña incorrectos.')
       return
     }
     navigate('/admin')
@@ -45,7 +45,7 @@ export default function AdminLogin() {
           required
           style={styles.input}
         />
-        {error && <p style={{ color: 'var(--brick)', fontSize: 13 }}>{error}</p>}
+        {error && <p style={{ color: '#B3413B', fontSize: 13 }}>{error}</p>}
         <button className="btn btn-primary" type="submit" disabled={loading}>
           {loading ? 'Entrando...' : 'Entrar'}
         </button>

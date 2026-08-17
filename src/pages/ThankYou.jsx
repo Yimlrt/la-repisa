@@ -1,18 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useCart } from '../lib/cart.jsx'
 
 export default function OrderPending() {
+  const { clearCart } = useCart()
+  useEffect(() => { clearCart() }, [])
+
   return (
-    <div className="container" style={{ padding: '80px 0', textAlign: 'center' }}>
-      <span className="tag" style={{ marginBottom: 16 }}>pedido registrado</span>
-      <h1 style={{ fontSize: 28, margin: '14px 0 10px' }}>¡Ya casi! Confirma tu comprobante por WhatsApp</h1>
-      <p style={{ opacity: 0.75, maxWidth: 440, margin: '0 auto 8px' }}>
-        Tu pedido quedó anotado, pero <strong>todavía no se despacha</strong>. En cuanto enviemos y confirmemos
-        el comprobante de tu transferencia por WhatsApp, empezamos a alistarlo.
+    <div className="container" style={{ padding: '110px 24px', textAlign: 'center' }}>
+      <span className="eyebrow">Pedido registrado</span>
+      <h1 style={{ fontSize: 26, margin: '16px 0 14px', fontWeight: 500 }}>
+        Confirma tu comprobante por WhatsApp
+      </h1>
+      <p style={{ color: 'var(--muted)', maxWidth: 420, margin: '0 auto 8px', fontSize: 14, lineHeight: 1.7 }}>
+        Tu pedido quedó anotado, pero todavía no se despacha. En cuanto confirmemos el comprobante de tu
+        transferencia por WhatsApp, empezamos a alistarlo.
       </p>
-      <p style={{ opacity: 0.6, maxWidth: 440, margin: '0 auto 24px', fontSize: 14 }}>
-        Si cerraste WhatsApp sin enviar la captura de la transferencia, no te preocupes: solo escríbenos de nuevo
-        con tu foto del comprobante y el número de pedido.
+      <p style={{ color: 'var(--muted)', maxWidth: 420, margin: '0 auto 32px', fontSize: 13, lineHeight: 1.7 }}>
+        Si cerraste WhatsApp sin enviar la captura, escríbenos de nuevo con tu foto del comprobante y el número de pedido.
       </p>
       <Link to="/" className="btn btn-primary">Seguir viendo productos</Link>
     </div>

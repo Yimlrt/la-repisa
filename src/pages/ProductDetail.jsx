@@ -21,6 +21,7 @@ export default function ProductDetail() {
       setProduct(data)
       setActiveImg(0)
       setLoading(false)
+      window.scrollTo({ top: 0 })
     }
     load()
   }, [id])
@@ -34,15 +35,9 @@ export default function ProductDetail() {
 
   const sinStock = product.stock <= 0
 
-  function next() {
-    setActiveImg((i) => (i + 1) % images.length)
-  }
-  function prev() {
-    setActiveImg((i) => (i - 1 + images.length) % images.length)
-  }
-  function handleTouchStart(e) {
-    touchStartX.current = e.touches[0].clientX
-  }
+  function next() { setActiveImg((i) => (i + 1) % images.length) }
+  function prev() { setActiveImg((i) => (i - 1 + images.length) % images.length) }
+  function handleTouchStart(e) { touchStartX.current = e.touches[0].clientX }
   function handleTouchEnd(e) {
     if (touchStartX.current === null) return
     const diff = e.changedTouches[0].clientX - touchStartX.current
@@ -52,143 +47,106 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="container" style={styles.wrap}>
-      <div>
-        <div
-          style={styles.imageWrap}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          {images.length > 0 ? (
-            <img src={images[activeImg]} alt={product.name} style={styles.image} />
-          ) : (
-            <div style={{ ...styles.image, ...styles.placeholder }}>Sin foto</div>
-          )}
+    <div>
+      <div className="container" style={{ padding: '24px 24px 0' }}>
+        <Link to="/" style={styles.back}>← Volver</Link>
+      </div>
+
+      <div className="container" style={styles.wrap}>
+        <div>
+          <div style={styles.imageWrap} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+            {images.length > 0 ? (
+              <img src={images[activeImg]} alt={product.name} style={styles.image} />
+            ) : (
+              <div style={{ ...styles.image, ...styles.placeholder }}>Sin foto</div>
+            )}
+
+            {images.length > 1 && (
+              <>
+                <button onClick={prev} style={{ ...styles.navBtn, left: 14 }} aria-label="Foto anterior">‹</button>
+                <button onClick={next} style={{ ...styles.navBtn, right: 14 }} aria-label="Foto siguiente">›</button>
+              </>
+            )}
+          </div>
 
           {images.length > 1 && (
-            <>
-              <button onClick={prev} style={{ ...styles.navBtn, left: 10 }} aria-label="Foto anterior">‹</button>
-              <button onClick={next} style={{ ...styles.navBtn, right: 10 }} aria-label="Foto siguiente">›</button>
-              <div style={styles.dots}>
-                {images.map((_, i) => (
-                  <span key={i} style={{ ...styles.dot, opacity: i === activeImg ? 1 : 0.4 }} />
-                ))}
-              </div>
-            </>
+            <div style={styles.thumbRow}>
+              {images.map((url, i) => (
+                <button
+                  key={url}
+                  onClick={() => setActiveImg(i)}
+                  style={{ ...styles.thumbBtn, borderColor: i === activeImg ? 'var(--ink)' : 'transparent' }}
+                >
+                  <img src={url} alt={`Foto ${i + 1}`} style={styles.thumbImg} />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
-        {images.length > 1 && (
-          <div style={styles.thumbRow}>
-            {images.map((url, i) => (
+        <div style={styles.info}>
+          <span className="eyebrow">{product.category || 'General'}</span>
+          <h1 style={styles.title}>{product.name}</h1>
+          <p style={styles.price}>{formatCOP(product.price)}</p>
+
+          <div style={styles.divider} />
+
+          <p style={styles.desc}>{product.description || 'Sin descripción disponible.'}</p>
+
+          {sinStock ? (
+            <p style={styles.soldOut}>Agotado</p>
+          ) : (
+            <>
+              <div style={styles.qtyRow}>
+                <span style={styles.qtyLabel}>Cantidad</span>
+                <div style={styles.qtyBox}>
+                  <button onClick={() => setQty((q) => Math.max(1, q - 1))} style={styles.qtyBtn}>−</button>
+                  <span style={{ minWidth: 28, textAlign: 'center' }}>{qty}</span>
+                  <button onClick={() => setQty((q) => Math.min(product.stock, q + 1))} style={styles.qtyBtn}>+</button>
+                </div>
+                <span style={{ fontSize: 12, color: 'var(--muted)' }}>{product.stock} disponibles</span>
+              </div>
               <button
-                key={url}
-                onClick={() => setActiveImg(i)}
-                style={{
-                  ...styles.thumbBtn,
-                  borderColor: i === activeImg ? 'var(--wine)' : 'transparent',
+                className="btn btn-primary"
+                style={{ marginTop: 20, width: '100%' }}
+                onClick={() => {
+                  addItem(product, qty)
+                  setAdded(true)
+                  setTimeout(() => setAdded(false), 1800)
                 }}
               >
-                <img src={url} alt={`Foto ${i + 1}`} style={styles.thumbImg} />
+                {added ? 'Agregado' : 'Agregar al carrito'}
               </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div style={styles.info}>
-        <span className="tag">{product.category || 'General'}</span>
-        <h1 style={styles.title}>{product.name}</h1>
-        <p style={styles.price}>{formatCOP(product.price)}</p>
-        <p style={styles.desc}>{product.description || 'Sin descripción disponible.'}</p>
-
-        {sinStock ? (
-          <p style={styles.soldOut}>Este producto está agotado por ahora.</p>
-        ) : (
-          <>
-            <div style={styles.qtyRow}>
-              <button className="btn btn-outline" onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
-              <span style={{ minWidth: 24, textAlign: 'center', fontWeight: 600 }}>{qty}</span>
-              <button className="btn btn-outline" onClick={() => setQty((q) => Math.min(product.stock, q + 1))}>+</button>
-              <span style={{ fontSize: 13, opacity: 0.6 }}>{product.stock} disponibles</span>
-            </div>
-            <button
-              className="btn btn-primary"
-              style={{ marginTop: 16, width: '100%' }}
-              onClick={() => {
-                addItem(product, qty)
-                setAdded(true)
-                setTimeout(() => setAdded(false), 1800)
-              }}
-            >
-              {added ? '¡Agregado!' : 'Agregar al carrito'}
-            </button>
-          </>
-        )}
-        <Link to="/carrito" style={{ display: 'block', marginTop: 12, fontSize: 14, fontWeight: 600, color: 'var(--wine)' }}>
-          Ver carrito →
-        </Link>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
 const styles = {
-  wrap: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: 40,
-    padding: '40px 20px 80px',
-  },
-  imageWrap: {
-    position: 'relative',
-    borderRadius: 16,
-    overflow: 'hidden',
-    background: '#EFE6D6',
-    aspectRatio: '1/1',
-    touchAction: 'pan-y',
-  },
+  back: { fontSize: 12, color: 'var(--muted)', letterSpacing: '0.02em' },
+  wrap: { display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 56, padding: '24px 24px 100px' },
+  imageWrap: { position: 'relative', background: '#F3F1EE', aspectRatio: '3/4', overflow: 'hidden', touchAction: 'pan-y' },
   image: { width: '100%', height: '100%', objectFit: 'cover', userSelect: 'none' },
-  placeholder: { display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', opacity: 0.5 },
+  placeholder: { display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontSize: 12 },
   navBtn: {
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
-    border: 'none',
-    background: 'rgba(255,255,255,0.85)',
-    color: 'var(--wine)',
-    fontSize: 20,
-    lineHeight: 1,
-    cursor: 'pointer',
+    position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+    width: 32, height: 32, borderRadius: '50%', border: 'none',
+    background: 'rgba(255,255,255,0.9)', color: 'var(--ink)', fontSize: 18, lineHeight: 1,
   },
-  dots: {
-    position: 'absolute',
-    bottom: 12,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    display: 'flex',
-    gap: 6,
-  },
-  dot: { width: 6, height: 6, borderRadius: '50%', background: '#fff' },
-  thumbRow: { display: 'flex', gap: 8, marginTop: 10, overflowX: 'auto' },
-  thumbBtn: {
-    width: 60,
-    height: 60,
-    flexShrink: 0,
-    borderRadius: 8,
-    overflow: 'hidden',
-    border: '2px solid transparent',
-    padding: 0,
-    background: '#EFE6D6',
-  },
+  thumbRow: { display: 'flex', gap: 8, marginTop: 10 },
+  thumbBtn: { width: 64, height: 64, flexShrink: 0, overflow: 'hidden', border: '1px solid transparent', padding: 0, background: '#F3F1EE' },
   thumbImg: { width: '100%', height: '100%', objectFit: 'cover' },
-  info: { display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' },
-  title: { fontSize: 30, margin: '10px 0 6px' },
-  price: { fontFamily: 'var(--font-mono)', fontSize: 22, color: 'var(--brick)', margin: '0 0 12px' },
-  desc: { lineHeight: 1.6, color: 'var(--ink)', opacity: 0.85, margin: '0 0 20px' },
-  soldOut: { color: 'var(--brick)', fontWeight: 600 },
-  qtyRow: { display: 'flex', alignItems: 'center', gap: 12 },
+  info: { paddingTop: 6 },
+  title: { fontSize: 28, margin: '14px 0 8px', color: 'var(--ink)' },
+  price: { fontSize: 18, color: 'var(--ink)', margin: 0, fontWeight: 500 },
+  divider: { height: 1, background: 'var(--line)', margin: '24px 0' },
+  desc: { lineHeight: 1.7, color: 'var(--muted)', fontSize: 14, margin: '0 0 28px' },
+  soldOut: { color: 'var(--ink)', fontWeight: 600, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase' },
+  qtyRow: { display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
+  qtyLabel: { fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted)' },
+  qtyBox: { display: 'flex', alignItems: 'center', gap: 4, border: '1px solid var(--line)', padding: '4px 10px' },
+  qtyBtn: { border: 'none', background: 'none', fontSize: 16, width: 22, color: 'var(--ink)' },
 }
