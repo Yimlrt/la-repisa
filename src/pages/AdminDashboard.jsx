@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { formatCOP } from '../lib/format.js'
 
-const emptyForm = { id: null, name: '', price: '', stock: '', category: '', description: '', image_url: '' }
+const emptyForm = { id: null, name: '', price: '', stock: '', category: '', description: '', image_urls: [] }
 
 export default function AdminDashboard() {
   const [session, setSession] = useState(undefined)
   const [products, setProducts] = useState([])
   const [form, setForm] = useState(emptyForm)
-  const [file, setFile] = useState(null)
+  const [files, setFiles] = useState([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -35,24 +35,35 @@ export default function AdminDashboard() {
     setProducts(data || [])
   }
 
+  async function uploadFiles(fileList) {
+    const urls = []
+    for (const file of fileList) {
+      const ext = file.name.split('.').pop()
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: uploadError } = await supabase.storage.from('product-images').upload(path, file)
+      if (uploadError) throw uploadError
+      const { data: publicUrl } = supabase.storage.from('product-images').getPublicUrl(path)
+      urls.push(publicUrl.publicUrl)
+    }
+    return urls
+  }
+
   async function handleSave(e) {
     e.preventDefault()
     setSaving(true)
     setError('')
 
-    let imageUrl = form.image_url
+    let imageUrls = form.image_urls
 
-    if (file) {
-      const ext = file.name.split('.').pop()
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error: uploadError } = await supabase.storage.from('product-images').upload(path, file)
-      if (uploadError) {
-        setError('No se pudo subir la imagen: ' + uploadError.message)
+    if (files.length > 0) {
+      try {
+        const newUrls = await uploadFiles(files)
+        imageUrls = [...imageUrls, ...newUrls]
+      } catch (err) {
+        setError('No se pudieron subir las fotos: ' + err.message)
         setSaving(false)
         return
       }
-      const { data: publicUrl } = supabase.storage.from('product-images').getPublicUrl(path)
-      imageUrl = publicUrl.publicUrl
     }
 
     const payload = {
@@ -61,7 +72,8 @@ export default function AdminDashboard() {
       stock: Number(form.stock) || 0,
       category: form.category,
       description: form.description,
-      image_url: imageUrl,
+      image_urls: imageUrls,
+      image_url: imageUrls[0] || null, // se mantiene por compatibilidad
     }
 
     let saveError
@@ -79,7 +91,7 @@ export default function AdminDashboard() {
       return
     }
     setForm(emptyForm)
-    setFile(null)
+    setFiles([])
     loadProducts()
   }
 
@@ -97,9 +109,18 @@ export default function AdminDashboard() {
       stock: p.stock,
       category: p.category || '',
       description: p.description || '',
-      image_url: p.image_url || '',
+      image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : (p.image_url ? [p.image_url] : []),
     })
+    setFiles([])
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function removeExistingImage(url) {
+    setForm((f) => ({ ...f, image_urls: f.image_urls.filter((u) => u !== url) }))
+  }
+
+  function removePendingFile(index) {
+    setFiles((f) => f.filter((_, i) => i !== index))
   }
 
   async function handleLogout() {
@@ -159,12 +180,44 @@ export default function AdminDashboard() {
           rows={3}
           style={{ ...styles.input, resize: 'vertical' }}
         />
+
         <div>
-          <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>
-            Foto del producto {form.image_url && '(ya tiene una, sube otra para reemplazarla)'}
+          <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 8 }}>
+            Fotos del producto (puedes subir varias, la primera será la principal)
           </label>
-          <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
+
+          {form.image_urls.length > 0 && (
+            <div style={styles.imageGrid}>
+              {form.image_urls.map((url, i) => (
+                <div key={url} style={styles.imageThumb}>
+                  <img src={url} alt={`Foto ${i + 1}`} style={styles.thumbImg} />
+                  {i === 0 && <span style={styles.mainBadge}>Principal</span>}
+                  <button type="button" onClick={() => removeExistingImage(url)} style={styles.removeBtn}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {files.length > 0 && (
+            <div style={styles.imageGrid}>
+              {files.map((file, i) => (
+                <div key={i} style={styles.imageThumb}>
+                  <img src={URL.createObjectURL(file)} alt={`Nueva ${i + 1}`} style={styles.thumbImg} />
+                  <span style={styles.pendingBadge}>Nueva</span>
+                  <button type="button" onClick={() => removePendingFile(i)} style={styles.removeBtn}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => setFiles((prev) => [...prev, ...Array.from(e.target.files)])}
+          />
         </div>
+
         {error && <p style={{ color: 'var(--brick)', fontSize: 13 }}>{error}</p>}
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" type="submit" disabled={saving}>
@@ -174,7 +227,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               className="btn btn-outline"
-              onClick={() => { setForm(emptyForm); setFile(null) }}
+              onClick={() => { setForm(emptyForm); setFiles([]) }}
             >
               Cancelar edición
             </button>
@@ -184,21 +237,24 @@ export default function AdminDashboard() {
 
       <h2 style={{ fontSize: 18, margin: '32px 0 14px' }}>Productos publicados ({products.length})</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {products.map((p) => (
-          <div key={p.id} style={styles.row}>
-            <div style={styles.thumb}>
-              {p.image_url && <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+        {products.map((p) => {
+          const imgs = p.image_urls && p.image_urls.length > 0 ? p.image_urls : (p.image_url ? [p.image_url] : [])
+          return (
+            <div key={p.id} style={styles.row}>
+              <div style={styles.thumb}>
+                {imgs[0] && <img src={imgs[0]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 600, margin: '0 0 2px' }}>{p.name}</p>
+                <p style={{ fontSize: 13, opacity: 0.7, margin: 0 }}>
+                  {formatCOP(p.price)} · {p.stock} disponibles · {p.category || 'Sin categoría'} · {imgs.length} foto{imgs.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button className="btn btn-outline" onClick={() => handleEdit(p)}>Editar</button>
+              <button onClick={() => handleDelete(p.id)} style={styles.delete}>Eliminar</button>
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontWeight: 600, margin: '0 0 2px' }}>{p.name}</p>
-              <p style={{ fontSize: 13, opacity: 0.7, margin: 0 }}>
-                {formatCOP(p.price)} · {p.stock} disponibles · {p.category || 'Sin categoría'}
-              </p>
-            </div>
-            <button className="btn btn-outline" onClick={() => handleEdit(p)}>Editar</button>
-            <button onClick={() => handleDelete(p.id)} style={styles.delete}>Eliminar</button>
-          </div>
-        ))}
+          )
+        })}
         {products.length === 0 && <p style={{ opacity: 0.6 }}>Aún no hay productos. Agrega el primero arriba.</p>}
       </div>
     </div>
@@ -223,6 +279,56 @@ const styles = {
     fontFamily: 'var(--font-body)',
     fontSize: 14,
     width: '100%',
+  },
+  imageGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+    gap: 10,
+    marginBottom: 10,
+  },
+  imageThumb: {
+    position: 'relative',
+    aspectRatio: '1/1',
+    borderRadius: 8,
+    overflow: 'hidden',
+    background: '#EFE6D6',
+  },
+  thumbImg: { width: '100%', height: '100%', objectFit: 'cover' },
+  mainBadge: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    background: 'var(--wine)',
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: 700,
+    padding: '2px 6px',
+    borderRadius: 4,
+  },
+  pendingBadge: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    background: 'var(--sage)',
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: 700,
+    padding: '2px 6px',
+    borderRadius: 4,
+  },
+  removeBtn: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    border: 'none',
+    background: 'rgba(26,20,20,0.7)',
+    color: '#fff',
+    fontSize: 14,
+    lineHeight: 1,
+    cursor: 'pointer',
   },
   row: {
     display: 'flex',
