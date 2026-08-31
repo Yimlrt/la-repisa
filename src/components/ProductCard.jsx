@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { formatCOP } from '../lib/format.js'
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, variantCount }) {
   const sinStock = product.stock <= 0
   const cover = (product.image_urls && product.image_urls[0]) || product.image_url
 
@@ -20,6 +20,7 @@ export default function ProductCard({ product }) {
         <span className="eyebrow">{product.category || 'General'}</span>
         <h3 style={styles.name}>{product.name}</h3>
         <p style={styles.price}>{formatCOP(product.price)}</p>
+        {variantCount > 1 && <p style={styles.variants}>{variantCount} colores disponibles</p>}
       </div>
     </Link>
   )
@@ -52,4 +53,5 @@ const styles = {
   body: { padding: '12px 2px 0', display: 'flex', flexDirection: 'column', gap: 4 },
   name: { fontSize: 14, fontWeight: 400, fontFamily: 'var(--font-body)', lineHeight: 1.3, marginTop: 2, color: 'var(--ink)' },
   price: { margin: 0, fontSize: 13.5, color: 'var(--muted)', fontWeight: 400 },
+  variants: { margin: 0, fontSize: 11, color: 'var(--muted)' },
 }

@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabase.js'
 import { formatCOP } from '../lib/format.js'
 import { rotateImageFile, urlToFile } from '../lib/imageEdit.js'
 
-const emptyForm = { id: null, name: '', price: '', stock: '', category: '', description: '', image_urls: [] }
+const emptyForm = { id: null, name: '', price: '', stock: '', category: '', description: '', image_urls: [], audience: '', modelGroup: '', color: '' }
+const AUDIENCES = ['', 'Mujeres', 'Hombres', 'Niños']
 
 export default function AdminDashboard() {
   const [session, setSession] = useState(undefined)
@@ -75,6 +76,9 @@ export default function AdminDashboard() {
       description: form.description,
       image_urls: imageUrls,
       image_url: imageUrls[0] || null, // se mantiene por compatibilidad
+      audience: form.audience || null,
+      model_group: form.modelGroup || null,
+      color: form.color || null,
     }
 
     let saveError
@@ -111,6 +115,9 @@ export default function AdminDashboard() {
       category: p.category || '',
       description: p.description || '',
       image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : (p.image_url ? [p.image_url] : []),
+      audience: p.audience || '',
+      modelGroup: p.model_group || '',
+      color: p.color || '',
     })
     setFiles([])
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -213,6 +220,37 @@ export default function AdminDashboard() {
           style={{ ...styles.input, resize: 'vertical' }}
         />
 
+        <div style={styles.grid2}>
+          <select
+            value={form.audience}
+            onChange={(e) => setForm({ ...form, audience: e.target.value })}
+            style={styles.input}
+          >
+            <option value="">Público: Todos</option>
+            {AUDIENCES.filter(Boolean).map((a) => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
+          <input
+            placeholder="Color (ej: Rojo, Azul) — opcional"
+            value={form.color}
+            onChange={(e) => setForm({ ...form, color: e.target.value })}
+            style={styles.input}
+          />
+        </div>
+        <div>
+          <input
+            placeholder="Modelo (mismo texto en todas las prendas de este diseño, para agrupar colores) — opcional"
+            value={form.modelGroup}
+            onChange={(e) => setForm({ ...form, modelGroup: e.target.value })}
+            style={styles.input}
+          />
+          <p style={styles.hint}>
+            Ej: si subes el mismo vestido en rojo, azul y negro, escribe "Vestido Flores" en Modelo en las 3 prendas
+            (cada una con su Color), y en la tienda el cliente podrá elegir el color como en las tiendas de ropa.
+          </p>
+        </div>
+
         <div>
           <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 8 }}>
             Fotos del producto (puedes subir varias, la primera será la principal)
@@ -282,6 +320,9 @@ export default function AdminDashboard() {
                 <p style={{ fontWeight: 600, margin: '0 0 2px' }}>{p.name}</p>
                 <p style={{ fontSize: 13, opacity: 0.7, margin: 0 }}>
                   {formatCOP(p.price)} · {p.stock} disponibles · {p.category || 'Sin categoría'} · {imgs.length} foto{imgs.length !== 1 ? 's' : ''}
+                  {p.audience ? ` · ${p.audience}` : ''}
+                  {p.color ? ` · Color: ${p.color}` : ''}
+                  {p.model_group ? ` · Modelo: ${p.model_group}` : ''}
                 </p>
               </div>
               <button className="btn btn-outline" onClick={() => handleEdit(p)}>Editar</button>
@@ -314,6 +355,7 @@ const styles = {
     fontSize: 14,
     width: '100%',
   },
+  hint: { fontSize: 12, color: 'var(--muted)', margin: '6px 0 0', lineHeight: 1.5 },
   imageGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',

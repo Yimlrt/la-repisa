@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { useCart } from '../lib/cart.jsx'
 import { formatCOP } from '../lib/format.js'
+import { colorToHex } from '../lib/colors.js'
 
 export default function ProductDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [product, setProduct] = useState(null)
+  const [variants, setVariants] = useState([])
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
@@ -20,6 +23,19 @@ export default function ProductDetail() {
       const { data } = await supabase.from('products').select('*').eq('id', id).single()
       setProduct(data)
       setActiveImg(0)
+      setQty(1)
+
+      if (data && data.model_group) {
+        const { data: siblings } = await supabase
+          .from('products')
+          .select('*')
+          .eq('model_group', data.model_group)
+          .order('color', { ascending: true })
+        setVariants(siblings || [])
+      } else {
+        setVariants([])
+      }
+
       setLoading(false)
       window.scrollTo({ top: 0 })
     }
@@ -91,6 +107,36 @@ export default function ProductDetail() {
 
           <div style={styles.divider} />
 
+          {variants.length > 1 && (
+            <div style={{ marginBottom: 24 }}>
+              <span style={styles.qtyLabel}>Color: {product.color || '—'}</span>
+              <div style={styles.swatchRow}>
+                {variants.map((v) => {
+                  const hex = colorToHex(v.color)
+                  const isActive = v.id === product.id
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => navigate(`/producto/${v.id}`)}
+                      title={v.color || 'Color'}
+                      style={{
+                        ...styles.swatch,
+                        borderColor: isActive ? 'var(--ink)' : 'var(--line)',
+                        opacity: v.stock <= 0 ? 0.35 : 1,
+                      }}
+                    >
+                      {hex ? (
+                        <span style={{ ...styles.swatchDot, background: hex }} />
+                      ) : (
+                        <span style={styles.swatchLabel}>{(v.color || '?').slice(0, 3)}</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           <p style={styles.desc}>{product.description || 'Sin descripción disponible.'}</p>
 
           {sinStock ? (
@@ -127,15 +173,9 @@ export default function ProductDetail() {
 
 const styles = {
   back: { fontSize: 12, color: 'var(--muted)', letterSpacing: '0.02em' },
-  wrap: { display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 56, padding: '24px 24px 100px' },
   imageWrap: { position: 'relative', background: '#F3F1EE', aspectRatio: '3/4', overflow: 'hidden', touchAction: 'pan-y' },
   image: { width: '100%', height: '100%', objectFit: 'cover', userSelect: 'none' },
   placeholder: { display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontSize: 12 },
-  navBtn: {
-    position: 'absolute', top: '50%', transform: 'translateY(-50%)',
-    width: 32, height: 32, borderRadius: '50%', border: 'none',
-    background: 'rgba(255,255,255,0.9)', color: 'var(--ink)', fontSize: 18, lineHeight: 1,
-  },
   thumbRow: { display: 'flex', gap: 8, marginTop: 10 },
   thumbBtn: { width: 64, height: 64, flexShrink: 0, overflow: 'hidden', border: '1px solid transparent', padding: 0, background: '#F3F1EE' },
   thumbImg: { width: '100%', height: '100%', objectFit: 'cover' },
@@ -149,4 +189,11 @@ const styles = {
   qtyLabel: { fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted)' },
   qtyBox: { display: 'flex', alignItems: 'center', gap: 4, border: '1px solid var(--line)', padding: '4px 10px' },
   qtyBtn: { border: 'none', background: 'none', fontSize: 16, width: 22, color: 'var(--ink)' },
+  swatchRow: { display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' },
+  swatch: {
+    width: 34, height: 34, borderRadius: '50%', border: '1.5px solid var(--line)',
+    background: '#fff', padding: 3, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  swatchDot: { width: '100%', height: '100%', borderRadius: '50%', display: 'block' },
+  swatchLabel: { fontSize: 8, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase' },
 }
