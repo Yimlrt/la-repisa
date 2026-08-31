@@ -1,16 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import ProductCard from '../components/ProductCard.jsx'
 
 const STORE_NAME = import.meta.env.VITE_STORE_NAME || 'La Repisa'
-const AUDIENCES = ['Todos', 'Mujeres', 'Hombres', 'Niños']
 
 export default function Home() {
+  const [searchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
-  const [audience, setAudience] = useState('Todos')
-  const [category, setCategory] = useState('Todas')
+
+  const audience = searchParams.get('audience') || 'Todos'
+  const initialCategory = searchParams.get('category') || 'Todas'
+  const [category, setCategory] = useState(initialCategory)
+
+  useEffect(() => {
+    setCategory(searchParams.get('category') || 'Todas')
+  }, [searchParams])
 
   useEffect(() => {
     async function load() {
@@ -41,7 +48,7 @@ export default function Home() {
     return matchesQuery && matchesCategory
   })
 
-  // Agrupa variantes del mismo modelo (mismo color de prenda distinto) en una sola tarjeta.
+  // Agrupa variantes del mismo modelo (mismo diseño, distinto color) en una sola tarjeta.
   const { display, variantCounts } = useMemo(() => {
     const seen = new Set()
     const list = []
@@ -60,25 +67,11 @@ export default function Home() {
     <div>
       <section style={styles.hero}>
         <div className="container">
-          <span className="eyebrow">Nueva colección</span>
+          <span className="eyebrow">{audience !== 'Todos' ? audience : 'Nueva colección'}</span>
           <h1 style={styles.heroTitle}>{STORE_NAME}</h1>
           <p style={styles.heroSub}>Ropa, bolsos, hogar y más — seleccionado con cuidado.</p>
         </div>
       </section>
-
-      <div style={styles.audienceBar}>
-        <div className="container" style={styles.audienceInner}>
-          {AUDIENCES.map((a) => (
-            <button
-              key={a}
-              onClick={() => { setAudience(a); setCategory('Todas') }}
-              style={{ ...styles.audienceChip, ...(audience === a ? styles.audienceChipActive : {}) }}
-            >
-              {a}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <section className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
         <div style={styles.controls}>
@@ -130,15 +123,6 @@ const styles = {
   hero: { padding: '64px 0 40px', borderBottom: '1px solid var(--line)' },
   heroTitle: { fontSize: 'clamp(38px, 6vw, 56px)', margin: '16px 0 12px', color: 'var(--ink)' },
   heroSub: { maxWidth: 420, color: 'var(--muted)', fontSize: 15, lineHeight: 1.6, margin: 0 },
-  audienceBar: { borderBottom: '1px solid var(--line)', background: 'var(--paper)', position: 'sticky', top: 72, zIndex: 15 },
-  audienceInner: { display: 'flex', gap: 28, overflowX: 'auto' },
-  audienceChip: {
-    border: 'none', background: 'none', padding: '14px 0',
-    fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase',
-    fontWeight: 500, color: 'var(--muted)', whiteSpace: 'nowrap',
-    borderBottom: '2px solid transparent',
-  },
-  audienceChipActive: { color: 'var(--ink)', borderBottomColor: 'var(--ink)' },
   controls: { display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 36 },
   search: {
     padding: '13px 0', border: 'none', borderBottom: '1px solid var(--line)',

@@ -142,3 +142,7 @@ h1, h2, h3 {
   gap: 6px;
 }
 .close-link:hover { color: var(--ink); }
+
+@media (max-width: 640px) {
+  header nav { gap: 16px !important; }
+}
