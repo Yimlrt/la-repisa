@@ -26,21 +26,25 @@ export default function Cart() {
         {items.map((item) => {
           const cover = (item.image_urls && item.image_urls[0]) || item.image_url
           return (
-            <div key={item.id} style={styles.row}>
+            <div key={item.cartKey} style={styles.row}>
               <div style={styles.thumb}>
                 {cover && <img src={cover} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ fontWeight: 500, margin: '0 0 4px', fontSize: 14 }}>{item.name}</p>
-                <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>{formatCOP(item.price)}</p>
+                <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
+                  {formatCOP(item.price)}
+                  {item.color ? ` · Color ${item.color}` : ''}
+                  {item.size ? ` · Talla ${item.size}` : ''}
+                </p>
               </div>
               <div style={styles.qtyBox}>
-                <button onClick={() => updateQty(item.id, item.qty - 1)} style={styles.qtyBtn}>−</button>
+                <button onClick={() => updateQty(item.cartKey, item.qty - 1)} style={styles.qtyBtn}>−</button>
                 <span style={{ minWidth: 20, textAlign: 'center', fontSize: 13 }}>{item.qty}</span>
-                <button onClick={() => updateQty(item.id, item.qty + 1)} style={styles.qtyBtn}>+</button>
+                <button onClick={() => updateQty(item.cartKey, item.qty + 1)} style={styles.qtyBtn}>+</button>
               </div>
               <p style={{ fontSize: 14, minWidth: 90, textAlign: 'right', margin: 0 }}>{formatCOP(item.price * item.qty)}</p>
-              <button onClick={() => removeItem(item.id)} style={styles.remove}>Quitar</button>
+              <button onClick={() => removeItem(item.cartKey)} style={styles.remove}>Quitar</button>
             </div>
           )
         })}

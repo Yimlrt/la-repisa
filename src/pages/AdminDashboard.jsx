@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase.js'
 import { formatCOP } from '../lib/format.js'
 import { rotateImageFile, urlToFile } from '../lib/imageEdit.js'
 
-const emptyForm = { id: null, name: '', price: '', stock: '', category: '', description: '', image_urls: [], audience: '', modelGroup: '', color: '' }
-const AUDIENCES = ['', 'Mujeres', 'Hombres', 'Niños']
+const emptyForm = { id: null, name: '', price: '', stock: '', category: '', subcategory: '', description: '', image_urls: [], audience: '', modelGroup: '', color: '', sizesText: '' }
+const AUDIENCES = ['', 'Mujeres', 'Hombres', 'Niños', 'Niñas', 'Hogar']
 
 export default function AdminDashboard() {
   const [session, setSession] = useState(undefined)
@@ -73,12 +73,16 @@ export default function AdminDashboard() {
       price: Number(form.price) || 0,
       stock: Number(form.stock) || 0,
       category: form.category,
+      subcategory: form.subcategory || null,
       description: form.description,
       image_urls: imageUrls,
       image_url: imageUrls[0] || null, // se mantiene por compatibilidad
       audience: form.audience || null,
       model_group: form.modelGroup || null,
       color: form.color || null,
+      sizes: form.sizesText
+        ? form.sizesText.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
     }
 
     let saveError
@@ -113,11 +117,13 @@ export default function AdminDashboard() {
       price: p.price,
       stock: p.stock,
       category: p.category || '',
+      subcategory: p.subcategory || '',
       description: p.description || '',
       image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : (p.image_url ? [p.image_url] : []),
       audience: p.audience || '',
       modelGroup: p.model_group || '',
       color: p.color || '',
+      sizesText: (p.sizes || []).join(', '),
     })
     setFiles([])
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -188,9 +194,15 @@ export default function AdminDashboard() {
             style={styles.input}
           />
           <input
-            placeholder="Categoría (ej: Ropa, Bolsos, Platos)"
+            placeholder="Categoría (ej: Ropa, Bolsos, Platos, Joyas)"
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
+            style={styles.input}
+          />
+          <input
+            placeholder="Subcategoría (ej: Aretes, Anillos, Pulseras) — opcional"
+            value={form.subcategory}
+            onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
             style={styles.input}
           />
           <input
@@ -248,6 +260,19 @@ export default function AdminDashboard() {
           <p style={styles.hint}>
             Ej: si subes el mismo vestido en rojo, azul y negro, escribe "Vestido Flores" en Modelo en las 3 prendas
             (cada una con su Color), y en la tienda el cliente podrá elegir el color como en las tiendas de ropa.
+          </p>
+        </div>
+
+        <div>
+          <input
+            placeholder='Tallas disponibles, separadas por coma (ej: S, M, L, XL o 28, 30, 32) — solo para ropa'
+            value={form.sizesText}
+            onChange={(e) => setForm({ ...form, sizesText: e.target.value })}
+            style={styles.input}
+          />
+          <p style={styles.hint}>
+            Déjalo vacío si el producto no es ropa (bolsos, platos, perfumes, etc). Si lo llenas, en la tienda
+            el cliente tendrá que elegir una talla antes de agregar al carrito.
           </p>
         </div>
 
@@ -319,10 +344,11 @@ export default function AdminDashboard() {
               <div style={{ flex: 1 }}>
                 <p style={{ fontWeight: 600, margin: '0 0 2px' }}>{p.name}</p>
                 <p style={{ fontSize: 13, opacity: 0.7, margin: 0 }}>
-                  {formatCOP(p.price)} · {p.stock} disponibles · {p.category || 'Sin categoría'} · {imgs.length} foto{imgs.length !== 1 ? 's' : ''}
+                  {formatCOP(p.price)} · {p.stock} disponibles · {p.category || 'Sin categoría'}{p.subcategory ? ` / ${p.subcategory}` : ''} · {imgs.length} foto{imgs.length !== 1 ? 's' : ''}
                   {p.audience ? ` · ${p.audience}` : ''}
                   {p.color ? ` · Color: ${p.color}` : ''}
                   {p.model_group ? ` · Modelo: ${p.model_group}` : ''}
+                  {p.sizes && p.sizes.length > 0 ? ` · Tallas: ${p.sizes.join(', ')}` : ''}
                 </p>
               </div>
               <button className="btn btn-outline" onClick={() => handleEdit(p)}>Editar</button>

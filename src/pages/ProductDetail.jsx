@@ -12,6 +12,7 @@ export default function ProductDetail() {
   const [variants, setVariants] = useState([])
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
+  const [selectedSize, setSelectedSize] = useState(null)
   const [added, setAdded] = useState(false)
   const [activeImg, setActiveImg] = useState(0)
   const touchStartX = useRef(null)
@@ -24,6 +25,7 @@ export default function ProductDetail() {
       setProduct(data)
       setActiveImg(0)
       setQty(1)
+      setSelectedSize(null)
 
       if (data && data.model_group) {
         const { data: siblings } = await supabase
@@ -79,8 +81,8 @@ export default function ProductDetail() {
 
             {images.length > 1 && (
               <>
-                <button onClick={prev} className="pd-navbtn" style={{ left: 14 }} aria-label="Foto anterior">‹</button>
-                <button onClick={next} className="pd-navbtn" style={{ right: 14 }} aria-label="Foto siguiente">›</button>
+                <button onClick={prev} className="pd-navbtn" style={{ left: 8 }} aria-label="Foto anterior">‹</button>
+                <button onClick={next} className="pd-navbtn" style={{ right: 8 }} aria-label="Foto siguiente">›</button>
               </>
             )}
           </div>
@@ -122,14 +124,12 @@ export default function ProductDetail() {
                       style={{
                         ...styles.swatch,
                         borderColor: isActive ? 'var(--ink)' : 'var(--line)',
+                        borderWidth: isActive ? 2 : 1,
                         opacity: v.stock <= 0 ? 0.35 : 1,
+                        background: hex || '#EFEAE1',
                       }}
                     >
-                      {hex ? (
-                        <span style={{ ...styles.swatchDot, background: hex }} />
-                      ) : (
-                        <span style={styles.swatchLabel}>{(v.color || '?').slice(0, 3)}</span>
-                      )}
+                      {!hex && <span style={styles.swatchLabel}>{(v.color || '?').slice(0, 3)}</span>}
                     </button>
                   )
                 })}
@@ -138,6 +138,28 @@ export default function ProductDetail() {
           )}
 
           <p style={styles.desc}>{product.description || 'Sin descripción disponible.'}</p>
+
+          {product.sizes && product.sizes.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <span style={styles.qtyLabel}>Talla{selectedSize ? `: ${selectedSize}` : ''}</span>
+              <div style={styles.swatchRow}>
+                {product.sizes.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSelectedSize(s)}
+                    style={{
+                      ...styles.sizeBtn,
+                      borderColor: selectedSize === s ? 'var(--ink)' : 'var(--line)',
+                      background: selectedSize === s ? 'var(--ink)' : 'transparent',
+                      color: selectedSize === s ? 'var(--paper)' : 'var(--ink)',
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {sinStock ? (
             <p style={styles.soldOut}>Agotado</p>
@@ -152,11 +174,15 @@ export default function ProductDetail() {
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--muted)' }}>{product.stock} disponibles</span>
               </div>
+              {product.sizes && product.sizes.length > 0 && !selectedSize && (
+                <p style={styles.sizeWarning}>Elige una talla para continuar.</p>
+              )}
               <button
                 className="btn btn-primary"
                 style={{ marginTop: 20, width: '100%' }}
+                disabled={product.sizes && product.sizes.length > 0 && !selectedSize}
                 onClick={() => {
-                  addItem(product, qty)
+                  addItem(product, qty, selectedSize)
                   setAdded(true)
                   setTimeout(() => setAdded(false), 1800)
                 }}
@@ -191,9 +217,14 @@ const styles = {
   qtyBtn: { border: 'none', background: 'none', fontSize: 16, width: 22, color: 'var(--ink)' },
   swatchRow: { display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' },
   swatch: {
-    width: 34, height: 34, borderRadius: '50%', border: '1.5px solid var(--line)',
-    background: '#fff', padding: 3, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 34, height: 34, borderRadius: 4, border: '1px solid var(--line)',
+    padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   swatchDot: { width: '100%', height: '100%', borderRadius: '50%', display: 'block' },
   swatchLabel: { fontSize: 8, fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase' },
+  sizeBtn: {
+    minWidth: 40, height: 40, padding: '0 12px', borderRadius: 4,
+    border: '1.5px solid var(--line)', fontSize: 13, fontWeight: 500,
+  },
+  sizeWarning: { fontSize: 12, color: 'var(--muted)', margin: '10px 0 0' },
 }

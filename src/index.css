@@ -113,13 +113,13 @@ h1, h2, h3 {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,0.92);
+  background: rgba(255,255,255,0.7);
   color: var(--ink);
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -127,9 +127,9 @@ h1, h2, h3 {
 }
 @media (max-width: 760px) {
   .pd-navbtn {
-    width: 46px;
-    height: 46px;
-    font-size: 26px;
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
   }
 }
 
@@ -143,6 +143,18 @@ h1, h2, h3 {
 }
 .close-link:hover { color: var(--ink); }
 
-@media (max-width: 640px) {
-  header nav { gap: 16px !important; }
+.desktop-nav { display: flex; align-items: center; gap: 24px; }
+.mobile-toggle { display: none !important; }
+.mobile-panel { display: none; }
+
+@media (max-width: 760px) {
+  .desktop-nav { display: none !important; }
+  .mobile-toggle { display: inline-flex !important; }
+  .mobile-panel {
+    display: block;
+    border-top: 1px solid var(--line);
+    max-height: calc(100vh - 68px);
+    overflow-y: auto;
+  }
 }
+

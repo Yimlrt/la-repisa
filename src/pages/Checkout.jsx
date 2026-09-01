@@ -34,7 +34,10 @@ export default function Checkout() {
   }
 
   function handleSendProof() {
-    const lines = items.map((i) => `• ${i.qty} x ${i.name} — ${formatCOP(i.price * i.qty)}`).join('\n')
+    const lines = items.map((i) => {
+      const variant = [i.color ? `Color ${i.color}` : null, i.size ? `Talla ${i.size}` : null].filter(Boolean).join(', ')
+      return `• ${i.qty} x ${i.name}${variant ? ` (${variant})` : ''} — ${formatCOP(i.price * i.qty)}`
+    }).join('\n')
     const message =
       `Hola! Quiero confirmar mi pedido *${reference}*\n\n` +
       `${lines}\n\n` +
@@ -58,8 +61,11 @@ export default function Checkout() {
 
       <div style={styles.summary}>
         {items.map((i) => (
-          <div key={i.id} style={styles.line}>
-            <span style={{ fontSize: 13 }}>{i.qty} × {i.name}</span>
+          <div key={i.cartKey} style={styles.line}>
+            <span style={{ fontSize: 13 }}>
+              {i.qty} × {i.name}
+              {i.color ? ` (${i.color}${i.size ? `, ${i.size}` : ''})` : (i.size ? ` (Talla ${i.size})` : '')}
+            </span>
             <span style={{ fontSize: 13 }}>{formatCOP(i.price * i.qty)}</span>
           </div>
         ))}
