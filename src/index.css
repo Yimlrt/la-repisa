@@ -143,6 +143,58 @@ h1, h2, h3 {
 }
 .close-link:hover { color: var(--ink); }
 
+/* --- Banner de portada tipo Mango: fotos grandes con categoría superpuesta --- */
+.hero-banner {
+  display: flex;
+  height: 640px;
+}
+.hero-panel {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  display: block;
+}
+.hero-panel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.hero-panel:hover .hero-panel-img {
+  transform: scale(1.03);
+}
+.hero-panel-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 20px 28px;
+  background: linear-gradient(to top, rgba(0,0,0,0.35), rgba(0,0,0,0));
+}
+.hero-panel-label {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.hero-panel-link {
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .hero-banner { flex-direction: column; height: auto; }
+  .hero-panel { height: 60vh; }
+}
+
 .desktop-nav { display: flex; align-items: center; gap: 24px; }
 .mobile-toggle { display: none !important; }
 .mobile-fullscreen { display: none; }
