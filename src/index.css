@@ -145,16 +145,18 @@ h1, h2, h3 {
 
 .desktop-nav { display: flex; align-items: center; gap: 24px; }
 .mobile-toggle { display: none !important; }
-.mobile-panel { display: none; }
+.mobile-fullscreen { display: none; }
 
 @media (max-width: 760px) {
   .desktop-nav { display: none !important; }
   .mobile-toggle { display: inline-flex !important; }
-  .mobile-panel {
-    display: block;
-    border-top: 1px solid var(--line);
-    max-height: calc(100vh - 68px);
-    overflow-y: auto;
+  .mobile-fullscreen {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--paper);
   }
 }
 

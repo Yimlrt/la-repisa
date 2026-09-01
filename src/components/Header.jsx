@@ -13,8 +13,7 @@ export default function Header() {
   const [menuData, setMenuData] = useState({})
   const [openMenu, setOpenMenu] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [mobileExpanded, setMobileExpanded] = useState(null) // audience abierta
-  const [mobileSubExpanded, setMobileSubExpanded] = useState(null) // categoria abierta dentro de la audiencia
+  const [mobileTab, setMobileTab] = useState(AUDIENCES[0])
   const closeTimer = useRef(null)
   const navRef = useRef(null)
 
@@ -36,14 +35,16 @@ export default function Header() {
 
   useEffect(() => {
     function handleOutside(e) {
-      if (navRef.current && !navRef.current.contains(e.target)) {
-        setOpenMenu(null)
-        setMobileOpen(false)
-      }
+      if (navRef.current && !navRef.current.contains(e.target)) setOpenMenu(null)
     }
     document.addEventListener('click', handleOutside)
     return () => document.removeEventListener('click', handleOutside)
   }, [])
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [mobileOpen])
 
   function openNow(a) {
     clearTimeout(closeTimer.current)
@@ -58,19 +59,21 @@ export default function Header() {
   function goTo(audience, category, subcategory) {
     setOpenMenu(null)
     setMobileOpen(false)
-    setMobileExpanded(null)
-    setMobileSubExpanded(null)
     const params = new URLSearchParams()
     params.set('audience', audience)
     if (category) params.set('category', category)
     if (subcategory) params.set('subcategory', subcategory)
     navigate(`/?${params.toString()}`)
   }
+  function openMobile() {
+    setMobileTab(AUDIENCES[0])
+    setMobileOpen(true)
+  }
 
   return (
     <header style={styles.header}>
       <div className="container" style={styles.inner}>
-        <Link to="/" style={styles.logo} onClick={() => setMobileOpen(false)}>{STORE_NAME}</Link>
+        <Link to="/" style={styles.logo}>{STORE_NAME}</Link>
 
         <div ref={navRef} style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <nav className="desktop-nav">
@@ -115,75 +118,61 @@ export default function Header() {
 
           <Link to="/carrito" style={styles.cartLink}>Carrito{count > 0 ? ` (${count})` : ''}</Link>
 
-          <button
-            className="mobile-toggle"
-            onClick={() => setMobileOpen((o) => !o)}
-            aria-label="Menú"
-            style={styles.mobileToggle}
-          >
-            {mobileOpen ? '✕' : '☰'}
+          <button className="mobile-toggle" onClick={openMobile} aria-label="Menú" style={styles.mobileToggle}>
+            ☰
           </button>
         </div>
       </div>
 
       {mobileOpen && (
-        <div className="mobile-panel">
-          <div className="container" style={{ display: 'flex', flexDirection: 'column' }}>
-            {AUDIENCES.map((a) => {
-              const categories = Object.keys(menuData[a] || {}).sort()
+        <div className="mobile-fullscreen">
+          <div style={styles.mobileTopRow}>
+            <div style={styles.mobileTabs}>
+              {AUDIENCES.map((a) => (
+                <button
+                  key={a}
+                  onClick={() => setMobileTab(a)}
+                  style={{
+                    ...styles.mobileTab,
+                    color: mobileTab === a ? 'var(--ink)' : 'var(--muted)',
+                    borderBottomColor: mobileTab === a ? 'var(--ink)' : 'transparent',
+                  }}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" style={styles.mobileClose}>✕</button>
+          </div>
+
+          <div style={styles.mobileList}>
+            <button onClick={() => goTo(mobileTab)} style={styles.mobileListItem}>
+              Ver todo {mobileTab.toLowerCase()}
+            </button>
+            {Object.keys(menuData[mobileTab] || {}).sort().map((c) => {
+              const subs = Array.from(menuData[mobileTab][c] || []).sort()
               return (
-                <div key={a} style={styles.mobileGroup}>
-                  <div style={styles.mobileRow}>
-                    <button onClick={() => goTo(a)} style={styles.mobileAudienceBtn}>{a}</button>
-                    <button
-                      onClick={() => setMobileExpanded((cur) => (cur === a ? null : a))}
-                      style={styles.mobileExpandBtn}
-                      aria-label={`Categorías de ${a}`}
-                    >
-                      {mobileExpanded === a ? '−' : '+'}
+                <div key={c}>
+                  <button onClick={() => goTo(mobileTab, c)} style={styles.mobileListItem}>{c}</button>
+                  {subs.map((s) => (
+                    <button key={s} onClick={() => goTo(mobileTab, c, s)} style={styles.mobileListSubItem}>
+                      {s}
                     </button>
-                  </div>
-                  {mobileExpanded === a && (
-                    <div style={styles.mobileSub}>
-                      {categories.length > 0 ? (
-                        categories.map((c) => {
-                          const subs = Array.from(menuData[a][c] || []).sort()
-                          return (
-                            <div key={c}>
-                              <div style={styles.mobileRow}>
-                                <button onClick={() => goTo(a, c)} style={styles.mobileSubBtn}>{c}</button>
-                                {subs.length > 0 && (
-                                  <button
-                                    onClick={() => setMobileSubExpanded((cur) => (cur === c ? null : c))}
-                                    style={styles.mobileExpandBtn}
-                                    aria-label={`Subcategorías de ${c}`}
-                                  >
-                                    {mobileSubExpanded === c ? '−' : '+'}
-                                  </button>
-                                )}
-                              </div>
-                              {mobileSubExpanded === c && (
-                                <div style={styles.mobileSubSub}>
-                                  {subs.map((s) => (
-                                    <button key={s} onClick={() => goTo(a, c, s)} style={styles.mobileSubSubBtn}>
-                                      {s}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })
-                      ) : (
-                        <span style={{ fontSize: 12, color: 'var(--muted)', padding: '6px 0' }}>
-                          Aún no hay productos aquí
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  ))}
                 </div>
               )
             })}
+            {Object.keys(menuData[mobileTab] || {}).length === 0 && (
+              <p style={{ color: 'var(--muted)', fontSize: 13, padding: '20px 0' }}>
+                Aún no hay productos aquí.
+              </p>
+            )}
+
+            <div style={styles.mobileCartRow}>
+              <Link to="/carrito" onClick={() => setMobileOpen(false)} style={styles.mobileCartLink}>
+                Ver carrito{count > 0 ? ` (${count})` : ''}
+              </Link>
+            </div>
           </div>
         </div>
       )}
@@ -239,61 +228,46 @@ const styles = {
     padding: '6px 0',
   },
   dropdownItem: {
-    display: 'block',
-    width: '100%',
-    border: 'none',
-    background: 'none',
-    textAlign: 'left',
-    padding: '10px 18px',
-    fontSize: 13,
-    color: 'var(--ink)',
+    display: 'block', width: '100%', border: 'none', background: 'none',
+    textAlign: 'left', padding: '10px 18px', fontSize: 13, color: 'var(--ink)',
   },
   dropdownSubItem: {
-    display: 'block',
-    width: '100%',
-    border: 'none',
-    background: 'none',
-    textAlign: 'left',
-    padding: '7px 18px 7px 30px',
-    fontSize: 12,
-    color: 'var(--muted)',
+    display: 'block', width: '100%', border: 'none', background: 'none',
+    textAlign: 'left', padding: '7px 18px 7px 30px', fontSize: 12, color: 'var(--muted)',
   },
   dropdownEmpty: { padding: '10px 18px', fontSize: 12, color: 'var(--muted)' },
   cartLink: {
-    fontSize: 12,
-    fontWeight: 500,
-    letterSpacing: '0.06em',
-    textTransform: 'uppercase',
-    color: 'var(--ink)',
-    whiteSpace: 'nowrap',
+    fontSize: 12, fontWeight: 500, letterSpacing: '0.06em',
+    textTransform: 'uppercase', color: 'var(--ink)', whiteSpace: 'nowrap',
   },
-  mobileToggle: {
-    display: 'none',
-    border: 'none',
-    background: 'none',
-    fontSize: 20,
-    lineHeight: 1,
-    color: 'var(--ink)',
-    padding: 4,
+  mobileToggle: { display: 'none', border: 'none', background: 'none', fontSize: 20, color: 'var(--ink)', padding: 4 },
+
+  mobileTopRow: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '14px 20px', borderBottom: '1px solid var(--line)',
   },
-  mobileGroup: { borderBottom: '1px solid var(--line-soft)' },
-  mobileRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  mobileAudienceBtn: {
-    flex: 1, textAlign: 'left', border: 'none', background: 'none',
-    padding: '15px 0', fontSize: 14, fontWeight: 500, letterSpacing: '0.04em',
-    textTransform: 'uppercase', color: 'var(--ink)',
+  mobileTabs: { display: 'flex', gap: 18, overflowX: 'auto' },
+  mobileTab: {
+    border: 'none', background: 'none', padding: '6px 0 10px',
+    fontSize: 13, fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase',
+    borderBottom: '2px solid transparent', whiteSpace: 'nowrap',
   },
-  mobileExpandBtn: {
-    border: 'none', background: 'none', fontSize: 18, width: 40, height: 40, color: 'var(--muted)', flexShrink: 0,
+  mobileClose: { border: 'none', background: 'none', fontSize: 20, color: 'var(--ink)', padding: 4 },
+  mobileList: { padding: '10px 20px 40px', overflowY: 'auto', flex: 1 },
+  mobileListItem: {
+    display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none',
+    padding: '16px 0', fontSize: 16, fontWeight: 600, color: 'var(--ink)',
+    borderBottom: '1px solid var(--line-soft)',
   },
-  mobileSub: { display: 'flex', flexDirection: 'column', paddingLeft: 4, paddingBottom: 10 },
-  mobileSubBtn: {
-    flex: 1, textAlign: 'left', border: 'none', background: 'none', padding: '9px 4px',
-    fontSize: 13, color: 'var(--muted)',
+  mobileListSubItem: {
+    display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none',
+    padding: '12px 0 12px 14px', fontSize: 14, color: 'var(--muted)',
+    borderBottom: '1px solid var(--line-soft)',
   },
-  mobileSubSub: { display: 'flex', flexDirection: 'column', paddingLeft: 16, paddingBottom: 4 },
-  mobileSubSubBtn: {
-    textAlign: 'left', border: 'none', background: 'none', padding: '8px 4px',
-    fontSize: 12.5, color: 'var(--muted)',
+  mobileCartRow: { marginTop: 24 },
+  mobileCartLink: {
+    display: 'block', textAlign: 'center', padding: '14px 0',
+    border: '1px solid var(--ink)', fontSize: 13, fontWeight: 600,
+    letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink)',
   },
 }
