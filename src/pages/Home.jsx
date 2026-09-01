@@ -40,7 +40,6 @@ export default function Home() {
     return matchesQuery && matchesCategory && matchesSubcategory
   })
 
-  // Agrupa variantes del mismo modelo (mismo diseño, distinto color) en una sola tarjeta.
   const { display, variantCounts } = useMemo(() => {
     const seen = new Set()
     const list = []
@@ -55,15 +54,11 @@ export default function Home() {
     return { display: list, variantCounts: counts }
   }, [filtered])
 
-  const heading = subcategory || (category !== 'Todas' ? category : (audience !== 'Todos' ? audience : 'Nueva colección'))
-
   return (
     <div>
       <section style={styles.hero}>
         <div className="container">
-          <span className="eyebrow">{heading}</span>
           <h1 style={styles.heroTitle}>{STORE_NAME}</h1>
-          <p style={styles.heroSub}>Ropa, bolsos, hogar y más — seleccionado con cuidado.</p>
         </div>
       </section>
 
@@ -101,9 +96,8 @@ export default function Home() {
 }
 
 const styles = {
-  hero: { padding: '64px 0 40px', borderBottom: '1px solid var(--line)' },
-  heroTitle: { fontSize: 'clamp(38px, 6vw, 56px)', margin: '16px 0 12px', color: 'var(--ink)' },
-  heroSub: { maxWidth: 420, color: 'var(--muted)', fontSize: 15, lineHeight: 1.6, margin: 0 },
+  hero: { padding: '56px 0 32px', borderBottom: '1px solid var(--line)' },
+  heroTitle: { fontSize: 'clamp(38px, 6vw, 56px)', margin: 0, color: 'var(--ink)' },
   search: {
     padding: '13px 0', border: 'none', borderBottom: '1px solid var(--line)',
     borderRadius: 0, fontSize: 14, fontFamily: 'var(--font-body)', maxWidth: 320,
