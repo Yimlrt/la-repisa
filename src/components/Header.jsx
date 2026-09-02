@@ -9,11 +9,12 @@ const AUDIENCES = ['Mujeres', 'Hombres', 'Niños', 'Niñas', 'Hogar']
 export default function Header() {
   const { count } = useCart()
   const navigate = useNavigate()
-  // { [audience]: { [category]: Set(subcategory) } }
   const [menuData, setMenuData] = useState({})
   const [openMenu, setOpenMenu] = useState(null)
+  const [openCategory, setOpenCategory] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileTab, setMobileTab] = useState(AUDIENCES[0])
+  const [mobileOpenCategory, setMobileOpenCategory] = useState(null)
   const closeTimer = useRef(null)
   const navRef = useRef(null)
 
@@ -35,7 +36,10 @@ export default function Header() {
 
   useEffect(() => {
     function handleOutside(e) {
-      if (navRef.current && !navRef.current.contains(e.target)) setOpenMenu(null)
+      if (navRef.current && !navRef.current.contains(e.target)) {
+        setOpenMenu(null)
+        setOpenCategory(null)
+      }
     }
     document.addEventListener('click', handleOutside)
     return () => document.removeEventListener('click', handleOutside)
@@ -49,16 +53,20 @@ export default function Header() {
   function openNow(a) {
     clearTimeout(closeTimer.current)
     setOpenMenu(a)
+    setOpenCategory(null)
   }
   function closeSoon() {
     closeTimer.current = setTimeout(() => setOpenMenu(null), 180)
   }
   function toggle(a) {
     setOpenMenu((cur) => (cur === a ? null : a))
+    setOpenCategory(null)
   }
   function goTo(audience, category, subcategory) {
     setOpenMenu(null)
+    setOpenCategory(null)
     setMobileOpen(false)
+    setMobileOpenCategory(null)
     const params = new URLSearchParams()
     params.set('audience', audience)
     if (category) params.set('category', category)
@@ -67,6 +75,7 @@ export default function Header() {
   }
   function openMobile() {
     setMobileTab(AUDIENCES[0])
+    setMobileOpenCategory(null)
     setMobileOpen(true)
   }
 
@@ -95,10 +104,22 @@ export default function Header() {
                       {categories.length > 0 ? (
                         categories.map((c) => {
                           const subs = Array.from(menuData[a][c] || []).sort()
+                          const hasSubs = subs.length > 0
                           return (
                             <div key={c}>
-                              <button onClick={() => goTo(a, c)} style={styles.dropdownItem}>{c}</button>
-                              {subs.map((s) => (
+                              <div style={styles.dropdownRow}>
+                                <button onClick={() => goTo(a, c)} style={{ ...styles.dropdownItem, flex: 1 }}>{c}</button>
+                                {hasSubs && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setOpenCategory((cur) => (cur === c ? null : c)) }}
+                                    style={styles.dropdownExpandBtn}
+                                    aria-label={`Subcategorías de ${c}`}
+                                  >
+                                    {openCategory === c ? '−' : '+'}
+                                  </button>
+                                )}
+                              </div>
+                              {hasSubs && openCategory === c && subs.map((s) => (
                                 <button key={s} onClick={() => goTo(a, c, s)} style={styles.dropdownSubItem}>
                                   {s}
                                 </button>
@@ -131,7 +152,7 @@ export default function Header() {
               {AUDIENCES.map((a) => (
                 <button
                   key={a}
-                  onClick={() => setMobileTab(a)}
+                  onClick={() => { setMobileTab(a); setMobileOpenCategory(null) }}
                   style={{
                     ...styles.mobileTab,
                     color: mobileTab === a ? 'var(--ink)' : 'var(--muted)',
@@ -151,14 +172,30 @@ export default function Header() {
             </button>
             {Object.keys(menuData[mobileTab] || {}).sort().map((c) => {
               const subs = Array.from(menuData[mobileTab][c] || []).sort()
+              const hasSubs = subs.length > 0
               return (
                 <div key={c}>
-                  <button onClick={() => goTo(mobileTab, c)} style={styles.mobileListItem}>{c}</button>
-                  {subs.map((s) => (
-                    <button key={s} onClick={() => goTo(mobileTab, c, s)} style={styles.mobileListSubItem}>
-                      {s}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <button onClick={() => goTo(mobileTab, c)} style={{ ...styles.mobileListItem, flex: 1, borderBottom: 'none' }}>
+                      {c}
                     </button>
-                  ))}
+                    {hasSubs && (
+                      <button
+                        onClick={() => setMobileOpenCategory((cur) => (cur === c ? null : c))}
+                        style={styles.mobileExpandBtn}
+                        aria-label={`Subcategorías de ${c}`}
+                      >
+                        {mobileOpenCategory === c ? '−' : '+'}
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ borderBottom: '1px solid var(--line-soft)' }}>
+                    {hasSubs && mobileOpenCategory === c && subs.map((s) => (
+                      <button key={s} onClick={() => goTo(mobileTab, c, s)} style={styles.mobileListSubItem}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )
             })}
@@ -181,93 +218,54 @@ export default function Header() {
 }
 
 const styles = {
-  header: {
-    position: 'sticky',
-    top: 0,
-    zIndex: 30,
-    background: 'var(--paper)',
-    borderBottom: '1px solid var(--line)',
-  },
-  inner: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 68,
-    gap: 20,
-  },
-  logo: {
-    fontFamily: 'var(--font-display)',
-    fontWeight: 500,
-    fontSize: 20,
-    letterSpacing: '0.02em',
-    color: 'var(--ink)',
-  },
+  header: { position: 'sticky', top: 0, zIndex: 30, background: 'var(--paper)', borderBottom: '1px solid var(--line)' },
+  inner: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 68, gap: 20 },
+  logo: { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 20, letterSpacing: '0.02em', color: 'var(--ink)' },
   navItem: { position: 'relative' },
   navBtn: {
-    border: 'none',
-    background: 'none',
-    padding: '24px 0',
-    fontSize: 12,
-    fontWeight: 500,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    color: 'var(--ink)',
+    border: 'none', background: 'none', padding: '24px 0', fontSize: 12, fontWeight: 500,
+    letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink)',
   },
   dropdown: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    minWidth: 200,
-    maxHeight: '70vh',
-    overflowY: 'auto',
-    background: 'var(--paper)',
-    border: '1px solid var(--line)',
-    boxShadow: '0 10px 28px rgba(23,20,15,0.10)',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '6px 0',
+    position: 'absolute', top: '100%', left: 0, minWidth: 210, maxHeight: '70vh', overflowY: 'auto',
+    background: 'var(--paper)', border: '1px solid var(--line)', boxShadow: '0 10px 28px rgba(23,20,15,0.10)',
+    display: 'flex', flexDirection: 'column', padding: '6px 0',
   },
+  dropdownRow: { display: 'flex', alignItems: 'center' },
   dropdownItem: {
     display: 'block', width: '100%', border: 'none', background: 'none',
     textAlign: 'left', padding: '10px 18px', fontSize: 13, color: 'var(--ink)',
+  },
+  dropdownExpandBtn: {
+    border: 'none', background: 'none', fontSize: 15, width: 32, height: 32, color: 'var(--muted)', flexShrink: 0,
   },
   dropdownSubItem: {
     display: 'block', width: '100%', border: 'none', background: 'none',
     textAlign: 'left', padding: '7px 18px 7px 30px', fontSize: 12, color: 'var(--muted)',
   },
   dropdownEmpty: { padding: '10px 18px', fontSize: 12, color: 'var(--muted)' },
-  cartLink: {
-    fontSize: 12, fontWeight: 500, letterSpacing: '0.06em',
-    textTransform: 'uppercase', color: 'var(--ink)', whiteSpace: 'nowrap',
-  },
+  cartLink: { fontSize: 12, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink)', whiteSpace: 'nowrap' },
   mobileToggle: { display: 'none', border: 'none', background: 'none', fontSize: 20, color: 'var(--ink)', padding: 4 },
-
-  mobileTopRow: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '14px 20px', borderBottom: '1px solid var(--line)',
-  },
+  mobileTopRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid var(--line)' },
   mobileTabs: { display: 'flex', gap: 18, overflowX: 'auto' },
   mobileTab: {
-    border: 'none', background: 'none', padding: '6px 0 10px',
-    fontSize: 13, fontWeight: 600, letterSpacing: '0.03em', textTransform: 'uppercase',
-    borderBottom: '2px solid transparent', whiteSpace: 'nowrap',
+    border: 'none', background: 'none', padding: '6px 0 10px', fontSize: 13, fontWeight: 600,
+    letterSpacing: '0.03em', textTransform: 'uppercase', borderBottom: '2px solid transparent', whiteSpace: 'nowrap',
   },
   mobileClose: { border: 'none', background: 'none', fontSize: 20, color: 'var(--ink)', padding: 4 },
   mobileList: { padding: '10px 20px 40px', overflowY: 'auto', flex: 1 },
   mobileListItem: {
     display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none',
-    padding: '16px 0', fontSize: 16, fontWeight: 600, color: 'var(--ink)',
-    borderBottom: '1px solid var(--line-soft)',
+    padding: '16px 0', fontSize: 16, fontWeight: 600, color: 'var(--ink)', borderBottom: '1px solid var(--line-soft)',
   },
+  mobileExpandBtn: { border: 'none', background: 'none', fontSize: 18, width: 40, height: 40, color: 'var(--muted)', flexShrink: 0 },
   mobileListSubItem: {
     display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none',
     padding: '12px 0 12px 14px', fontSize: 14, color: 'var(--muted)',
-    borderBottom: '1px solid var(--line-soft)',
   },
   mobileCartRow: { marginTop: 24 },
   mobileCartLink: {
-    display: 'block', textAlign: 'center', padding: '14px 0',
-    border: '1px solid var(--ink)', fontSize: 13, fontWeight: 600,
-    letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink)',
+    display: 'block', textAlign: 'center', padding: '14px 0', border: '1px solid var(--ink)',
+    fontSize: 13, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--ink)',
   },
 }

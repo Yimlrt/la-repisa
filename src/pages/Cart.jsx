@@ -4,7 +4,7 @@ import { useCart } from '../lib/cart.jsx'
 import { formatCOP } from '../lib/format.js'
 
 export default function Cart() {
-  const { items, updateQty, removeItem, total } = useCart()
+  const { items, updateQty, removeItem, clearCart, total } = useCart()
   const navigate = useNavigate()
 
   if (items.length === 0) {
@@ -15,34 +15,6 @@ export default function Cart() {
       </div>
     )
   }
-  {items.map((item) => {
-  const cover = (item.image_urls && item.image_urls[0]) || item.image_url
-  return (
-    <div key={item.id} style={styles.row}> {/* Usa item.id aquí */}
-      <div style={styles.thumb}>
-        {cover && <img src={cover} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-      </div>
-      <div style={{ flex: 1 }}>
-        <p style={{ fontWeight: 500, margin: '0 0 4px', fontSize: 14 }}>{item.name}</p>
-        <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
-          {formatCOP(item.price)}
-          {item.color ? ` · Color ${item.color}` : ''}
-          {item.size ? ` · Talla ${item.size}` : ''}
-        </p>
-      </div>
-      <div style={styles.qtyBox}>
-        {/* Cambia item.cartKey por item.id */}
-        <button onClick={() => updateQty(item.id, item.qty - 1)} style={styles.qtyBtn}>−</button>
-        <span style={{ minWidth: 20, textAlign: 'center', fontSize: 13 }}>{item.qty}</span>
-        <button onClick={() => updateQty(item.id, item.qty + 1)} style={styles.qtyBtn}>+</button>
-      </div>
-      <p style={{ fontSize: 14, minWidth: 90, textAlign: 'right', margin: 0 }}>{formatCOP(item.price * item.qty)}</p>
-      
-      {/* Cambia item.cartKey por item.id */}
-      <button onClick={() => removeItem(item.id)} style={styles.remove}>Quitar</button>
-    </div>
-  )
-})}
 
   return (
     <div className="container" style={{ padding: '48px 24px 100px', maxWidth: 720 }}>
@@ -78,6 +50,8 @@ export default function Cart() {
         })}
       </div>
 
+      <button onClick={clearCart} style={styles.clearAll}>Vaciar carrito</button>
+
       <div style={styles.summary}>
         <span style={{ fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--muted)' }}>Total</span>
         <span style={{ fontSize: 20, fontWeight: 500 }}>{formatCOP(total)}</span>
@@ -102,6 +76,10 @@ const styles = {
   qtyBox: { display: 'flex', alignItems: 'center', gap: 10, border: '1px solid var(--line)', padding: '4px 10px' },
   qtyBtn: { border: 'none', background: 'none', fontSize: 15, color: 'var(--ink)', width: 16 },
   remove: { background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12, textDecoration: 'underline' },
+  clearAll: {
+    background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12,
+    textDecoration: 'underline', marginTop: 16, padding: 0, cursor: 'pointer',
+  },
   summary: {
     display: 'flex',
     justifyContent: 'space-between',

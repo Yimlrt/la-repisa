@@ -3,11 +3,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 const CartContext = createContext(null)
 const STORAGE_KEY = 'la-repisa-cart'
 
+function cartKeyOf(productId, size) {
+  return `${productId}::${size || ''}`
+}
+
 export function CartProvider({ children }) {
   const [items, setItems] = useState(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      return raw ? JSON.parse(raw) : []
+      const parsed = raw ? JSON.parse(raw) : []
+      // Compatibilidad: si un carrito viejo no tiene cartKey (de antes de las tallas), se lo agregamos.
+      return parsed.map((i) => (i.cartKey ? i : { ...i, cartKey: cartKeyOf(i.id, i.size) }))
     } catch {
       return []
     }
@@ -17,25 +23,24 @@ export function CartProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
   }, [items])
 
-  function addItem(product, qty = 1) {
+  function addItem(product, qty = 1, size = null) {
+    const cartKey = cartKeyOf(product.id, size)
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === product.id)
+      const existing = prev.find((i) => i.cartKey === cartKey)
       if (existing) {
-        return prev.map((i) =>
-          i.id === product.id ? { ...i, qty: i.qty + qty } : i
-        )
+        return prev.map((i) => (i.cartKey === cartKey ? { ...i, qty: i.qty + qty } : i))
       }
-      return [...prev, { ...product, qty }]
+      return [...prev, { ...product, qty, size: size || null, cartKey }]
     })
   }
 
-  function removeItem(id) {
-    setItems((prev) => prev.filter((i) => i.id !== id))
+  function removeItem(cartKey) {
+    setItems((prev) => prev.filter((i) => i.cartKey !== cartKey))
   }
 
-  function updateQty(id, qty) {
-    if (qty <= 0) return removeItem(id)
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)))
+  function updateQty(cartKey, qty) {
+    if (qty <= 0) return removeItem(cartKey)
+    setItems((prev) => prev.map((i) => (i.cartKey === cartKey ? { ...i, qty } : i)))
   }
 
   function clearCart() {
